@@ -379,6 +379,11 @@ async function exportToExcel(data: AppMsgEx[]) {
     {header: '所属合集', key: 'album', width: 50},
     {header: '摘要', key: 'digest', width: 100},
     {header: '原文链接', key: 'link', width: 200},
+    {header: '封面图链接', key: 'cover_img', width: 200},
+    {header: '封面图链接(235_1)', key: 'cover_img_235_1', width: 200},
+    {header: '封面图链接(16_9)', key: 'cover_img_16_9', width: 200},
+    {header: '封面图链接(3_4)', key: 'cover_img_3_4', width: 200},
+    {header: '封面图链接(1_1)', key: 'cover_img_1_1', width: 200},
   ];
 
   // 添加数据
@@ -391,6 +396,11 @@ async function exportToExcel(data: AppMsgEx[]) {
       album: item.appmsg_album_infos.map(album => '#'+album.title).join(' '),
       digest: item.digest,
       link: item.link,
+      cover_img: item.pic_cdn_url_235_1 || item.pic_cdn_url_16_9 || item.cover_img || item.cover,
+      cover_img_235_1: item.pic_cdn_url_235_1,
+      cover_img_16_9: item.pic_cdn_url_16_9,
+      cover_img_3_4: item.pic_cdn_url_3_4,
+      cover_img_1_1: item.pic_cdn_url_1_1,
     });
   });
 
