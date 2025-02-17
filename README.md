@@ -15,7 +15,7 @@
 
 ## 注意
 
-由于公共代理资源有限，因此推荐 **搭建私有代理节点** 服用，私有代理可部署在以下平台：
+由于公共代理资源有限，因此推荐 **搭建私有代理节点** 服用，私有代理节点可部署在以下平台：
 
 - [Deno Deploy][Deno Deploy]
 - [Cloudflare Workers][Cloudflare Workers]
@@ -85,6 +85,8 @@ https://wproxy-10.deno.dev
 > 这些节点全部部署在 Deno Deploy 的免费账户中，每个月有100G的免费额度，超过额度之后需要等到下个周期刷新。
 >
 > **这些节点仅供测试使用，正式使用请搭建自己的私有节点。**
+> 
+> 查看 [搭建私有代理节点](docs/private-proxy.md) 教程。
 
 
 ## 关于导出其他格式
@@ -108,74 +110,13 @@ https://wproxy-10.deno.dev
 
 
 
-## :rocket: 私有部署 (网站)
-
-> [!WARNING]
-> ~~由于项目目前还没有进入稳定状态，所以如果进行了私有部署，请随时关注该项目的最新更新，特别是代理部分的变化，后续将会修改使用策略。~~
->
-> ~~或者你可以修改`config/index.ts`中的`AVAILABLE_PROXY_LIST`变量，完全使用自己搭建的节点。~~
->
-> ~~另外，目前只有部署到 Deno Deploy 的文档，如果需要部署到其他平台，请在 Issue 中说明。~~
->
-> 2024.11.14 更新
->
-> 推荐使用 **[公共网站](https://wechat-article-exporter.deno.dev/)** + **私有代理节点** 的形式使用。
-> 
-> 如果你确实需要部署私有网站，可查看下面的部署教程。
-> 
-> 注意：公众网站(也就是 https://wechat-article-exporter.deno.dev/ )的功能是最全的，后续某些 Pro 版功能只会出现在公共网站中，私有部署不支持。
-
-<details>
-<summary><span style="font-size: 16px;font-weight: 500;">部署到 Deno Deploy</span></summary>
-
-1. Fork 该项目
-
-![create a fork][create-a-fork]
-
-2. 点击 [New Project][new-deno-deploy-project] 在 Deno Deploy 上面创建一个项目，选择你刚fork的仓库，如下图所示:
-
-![create deno deploy project][create-deno-deploy-project]
-
-创建之后如下所示:
-
-![deno deploy project result][deno-deploy-project-create-result]
-
-3. 修改github仓库发布配置
-
-启用仓库的 workflows (默认fork的仓库是禁用的):
-
-![enable github workflows][enable-github-workflows]
-
-修改`.github/workflows/deno_deploy.yml`:
-
-![update workflows project][update-workflows-project]
-
-提交:
-
-![commit changes][commit-changes]
-
-4. 等待发布结果
-
-![deploy success][deploy-success]
-
-![finally website][finally-website]
-</details>
+## :rocket: 部署私有网站
+查看 [搭建私有网站](docs/private-deploy.md) 教程。
 
 
 ## 关于后续更新计划
 
-后续会区分出 **免费版** 和 **Pro版**，区别如下:
-
-### 免费版
-- 所有现有功能
-- 所有现有的代理节点
-- 现有功能的bug修复
-
-### Pro版
-- 订阅自动下载服务
-- 更多专用代理节点
-
-> 目前只是有这个计划，并没有开始实施。对于之前有赞赏行为的用户，可提供优惠政策。
+为了项目能够长期健康的发展，后续会推出一些付费服务，具体可查看 issue 中的 [pro计划](https://github.com/wechat-article/wechat-article-exporter/labels/pro%E8%AE%A1%E5%88%92) 标签
 
 
 ## :bulb: 原理
@@ -211,24 +152,6 @@ MIT
 [登录页面]: https://wechat-article-exporter.deno.dev/login
 
 [切换账号]: assets/switch-account.png
-
-[create-a-fork]: assets/deploy/create-fork.png
-
-[new-deno-deploy-project]: https://dash.deno.com/new_project
-
-[create-deno-deploy-project]: assets/deploy/create-deno-deploy-project.png
-
-[deno-deploy-project-create-result]: assets/deploy/deno-deploy-project-result.png
-
-[enable-github-workflows]: assets/deploy/enable-github-workflows.png
-
-[update-workflows-project]: assets/deploy/update-workflows-project.png
-
-[commit-changes]: assets/deploy/commit-changes.png
-
-[deploy-success]: assets/deploy/deploy-success.png
-
-[finally-website]: assets/deploy/finally-website.png
 
 [Deno Deploy]: https://deno.com/deploy
 
