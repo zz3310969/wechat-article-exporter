@@ -15,7 +15,7 @@
 
 ## 文档
 
-[文档站点](https://wechat-article-docs.deno.dev) 上线啦 🎉🎉🎉，后续使用教程会在此站点统一进行维护。
+[文档站点](https://docs.champ.design) 上线啦 🎉🎉🎉，后续使用教程会在此站点统一进行维护。
 
 
 ## :dart: 特性
