@@ -1,10 +1,11 @@
 {
   "name": "wechat-article-exporter",
-  "version": "0.0.3",
-  "description": "微信公众号批量下载工具",
+  "version": "0.0.4",
+  "description": "微信公众号文章批量下载工具",
   "keywords": [
-    "公众号",
     "公众号文章",
+    "公众号文章爬虫",
+    "公众号文章下载",
     "批量下载",
     "在线下载",
     "wechat",
@@ -12,7 +13,7 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "node -e \"const version = process.version.slice(1);if (parseInt(version.split('.')[0]) < 20) throw new Error('Expected node version >= 20, Got ' + version)\" && nuxt dev",
+    "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -50,5 +51,8 @@
     "@types/file-saver": "^2.0.7",
     "tailwindcss-debug-screens": "^2.2.1",
     "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
