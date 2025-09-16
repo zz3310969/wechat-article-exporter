@@ -31,6 +31,6 @@ jobs:
       - name: Deploy to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: free-wechat-exporter
+          project: free-wxdown
           entrypoint: server/index.ts
           root: .output
