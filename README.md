@@ -13,12 +13,6 @@
 
 交流群(QQ): `991482155`
 
-## 部署站点
-
-| 开源版                          | 专业版                            |
-|------------------------------|--------------------------------|
-| https://free-wxdown.deno.dev | https://exporter.wxdown.online |
-
 
 ## 文档
 
@@ -52,12 +46,6 @@
 如果你觉得本项目帮助到了你，请给作者一个免费的 Star，感谢你的支持！
 
 
-
-## 关于后续更新计划
-
-为了项目能够长期健康的发展，后续会推出一些付费服务，具体可查看 issue 中的 [pro计划](https://github.com/wechat-article/wechat-article-exporter/labels/pro%E8%AE%A1%E5%88%92) 标签
-
-
 ## :bulb: 原理
 
 在公众号后台写文章时支持搜索其他公众号的文章功能，以此来实现抓取指定公众号所有文章的目的。
@@ -69,7 +57,7 @@ MIT
 
 ## 声明
 
-本程序(开源版 and 专业版)承诺，不会利用您扫码登录的公众号进行任何形式的私有爬虫，也就是说不存在把你的账号作为公共账号为别人爬取文章的行为，也不存在类似账号池的东西。
+本程序承诺，不会利用您扫码登录的公众号进行任何形式的私有爬虫，也就是说不存在把你的账号作为公共账号为别人爬取文章的行为，也不存在类似账号池的东西。
 
 您的公众号只会服务于您自己的抓取文章的目的。
 
@@ -88,17 +76,11 @@ MIT
 
 [deploy]: https://github.com/jooooock/wechat-article-exporter/actions
 
-[Github stars]: https://img.shields.io/github/stars/jooooock/wechat-article-exporter?style=social&label=Star&style=plastic
+[GitHub stars]: https://img.shields.io/github/stars/wechat-article/wechat-article-exporter?style=social&label=Star&style=plastic
 
-[Github forks]: https://img.shields.io/github/forks/jooooock/wechat-article-exporter?style=social&label=Fork&style=plastic
+[GitHub forks]: https://img.shields.io/github/forks/wechat-article/wechat-article-exporter?style=social&label=Fork&style=plastic
 
-[Github License]: https://img.shields.io/github/license/jooooock/wechat-article-exporter?label=License
-
-[微信公众平台]: https://mp.weixin.qq.com/cgi-bin/registermidpage?action=index&lang=zh_CN
-
-[登录页面]: https://wechat-article-exporter.deno.dev/login
-
-[切换账号]: assets/switch-account.png
+[GitHub License]: https://img.shields.io/github/license/wechat-article/wechat-article-exporter?label=License
 
 [Deno Deploy]: https://deno.com/deploy
 
@@ -106,6 +88,6 @@ MIT
 
 [Wechat_Article]: https://github.com/1061700625/WeChat_Article
 
-[Star History Chart]: https://api.star-history.com/svg?repos=jooooock/wechat-article-exporter&type=Timeline
+[Star History Chart]: https://api.star-history.com/svg?repos=wechat-article/wechat-article-exporter&type=Timeline
 
-[Star History Chart Link]: https://star-history.com/#jooooock/wechat-article-exporter&Timeline
+[Star History Chart Link]: https://star-history.com/#wechat-article/wechat-article-exporter&Timeline
