@@ -2,12 +2,10 @@
 import {
   type FilterChangedEvent,
   type GetRowIdParams,
-  ModuleRegistry,
   type ValueFormatterParams,
   type ICellRendererParams,
   type GridOptions,
 } from 'ag-grid-community';
-import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
 import { AgGridVue } from 'ag-grid-vue3';
 import type { ColDef, GridReadyEvent, GridApi, IDateFilterParams, ValueGetterParams } from 'ag-grid-community';
 import { themeQuartz } from 'ag-grid-community';
@@ -31,9 +29,6 @@ import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { PreviewArticle } from '#components';
 import TurndownService from 'turndown';
 import type { Preferences } from '~/types/preferences';
-
-ModuleRegistry.registerModules([AllEnterpriseModule]);
-LicenseManager.setLicenseKey('[v3][0102]_MTc1NjY1NjAwMDAwMA==c5ac76aeee205aafd39087f0ad4063a5');
 
 let globalRowData: Article[] = [];
 

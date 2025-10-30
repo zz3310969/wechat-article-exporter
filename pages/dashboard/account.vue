@@ -11,7 +11,6 @@ import {
   type GridReadyEvent,
   type ICellRendererParams,
   type IDateFilterParams,
-  ModuleRegistry,
   type SelectionChangedEvent,
   themeQuartz,
   type ValueFormatterParams,
@@ -22,7 +21,6 @@ import GridLoading from '~/components/grid/Loading.vue';
 import GridNoRows from '~/components/grid/NoRows.vue';
 import { deleteAccountData } from '~/store/v2';
 import { getAllInfo, getInfoCache } from '~/store/v2/info';
-import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
 import { getArticleList } from '~/apis';
 import { getArticleCache, hitCache } from '~/store/v2/article';
 import GridAccountActions from '~/components/grid/AccountActions.vue';
@@ -32,9 +30,6 @@ import LoginModal from '~/components/modal/Login.vue';
 import { formatTimeStamp } from '~/utils';
 import StorageUsage from '~/components/StorageUsage.vue';
 import type { Preferences } from '~/types/preferences';
-
-ModuleRegistry.registerModules([AllEnterpriseModule]);
-LicenseManager.setLicenseKey('[v3][0102]_MTc1NjY1NjAwMDAwMA==c5ac76aeee205aafd39087f0ad4063a5');
 
 useHead({
   title: '公众号管理 | 微信公众号文章导出',

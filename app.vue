@@ -10,10 +10,16 @@
 </template>
 
 <script setup lang="ts">
+import { ModuleRegistry } from 'ag-grid-community';
+import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
+
 const isDev = !import.meta.env.PROD;
 const runtimeConfig = useRuntimeConfig();
 
 const websiteID = runtimeConfig.public.umamiWebsiteID;
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+LicenseManager.setLicenseKey(runtimeConfig.public.aggridLicense);
 
 useHead({
   script: [
@@ -29,24 +35,5 @@ useHead({
 </script>
 
 <style>
-body {
-  overscroll-behavior: none; /* 阻止滚动到页面边缘的效果 */
-}
-::selection {
-  background-color: yellow;
-  color: black;
-}
-.highlight {
-  color: red;
-}
-.ag-header-cell-label {
-  justify-content: center;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
+@import 'style.css';
 </style>
