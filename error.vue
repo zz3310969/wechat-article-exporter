@@ -16,12 +16,7 @@
         </p>
         <p>
           Go to the
-          <a
-            class="hover:cursor-pointer"
-            @click="handleError"
-          >
-            login
-          </a>
+          <a class="hover:cursor-pointer" @click="handleError"> login </a>
         </p>
       </div>
     </div>
@@ -32,8 +27,7 @@
 const error = useError();
 const handleError = () => {
   clearError({
-    redirect:
-      '/login',
+    redirect: '/login',
   });
 };
 </script>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { DatePicker as VCalendarDatePicker } from 'v-calendar'
-import type { DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker'
-import 'v-calendar/style.css'
-
+import { DatePicker as VCalendarDatePicker } from 'v-calendar';
+import type { DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker';
+import 'v-calendar/style.css';
 
 const props = defineProps({
   modelValue: {
@@ -10,19 +9,19 @@ const props = defineProps({
     default: {
       start: new Date(),
       end: new Date(),
-    }
-  }
-})
+    },
+  },
+});
 
-const emit = defineEmits(['update:model-value', 'close'])
+const emit = defineEmits(['update:model-value', 'close']);
 
 const date = computed({
   get: () => props.modelValue,
-  set: (value) => {
-    emit('update:model-value', value)
-    emit('close')
-  }
-})
+  set: value => {
+    emit('update:model-value', value);
+    emit('close');
+  },
+});
 
 const attrs = {
   transparent: true,
@@ -30,8 +29,8 @@ const attrs = {
   color: 'blue',
   'is-dark': { selector: 'html', darkClass: 'dark' },
   'first-day-of-week': 1,
-  locale: 'zh-CN'
-}
+  locale: 'zh-CN',
+};
 </script>
 
 <template>
