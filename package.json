@@ -3,14 +3,12 @@
   "version": "1.0.1",
   "type": "module",
   "scripts": {
-    "debug": "node -e \"const version = process.version.slice(1);if (parseInt(version.split('.')[0]) < 20) throw new Error('Expected node version >= 20, Got ' + version)\" && nuxt dev --inspect",
-    "dev": "node -e \"const version = process.version.slice(1);if (parseInt(version.split('.')[0]) < 20) throw new Error('Expected node version >= 20, Got ' + version)\" && nuxt dev",
+    "debug": "nuxt dev --inspect",
+    "dev": "nuxt dev",
     "build": "nuxt build",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "add:biz": "deno run -A --unstable-kv scripts/biz.ts",
-    "user": "deno run -A --unstable-kv scripts/user.ts"
+    "docker:build": "docker build --build-arg VERSION=$npm_package_version -t ghcr.io/wechat-article/wechat-article-exporter:$npm_package_version .",
+    "docker:publish": "docker push ghcr.io/wechat-article/wechat-article-exporter:$npm_package_version"
   },
   "dependencies": {
     "@ag-grid-community/locale": "^34.0.0",
@@ -42,7 +40,7 @@
     "turndown": "^7.2.0",
     "uuid": "^11.0.3",
     "v-calendar": "^3.1.2",
-    "vue": "latest",
+    "vue": "^3.5.22",
     "vue-chartjs": "^5.3.1",
     "vue-shadow-dom": "^4.2.0",
     "zod": "^3.23.8"
@@ -55,7 +53,7 @@
     "typescript": "^5.5.3"
   },
   "engines": {
-    "node": ">=22",
-    "yarn": "1.x"
-  }
+    "node": ">=22"
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
