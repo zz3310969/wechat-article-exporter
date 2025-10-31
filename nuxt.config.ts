@@ -34,20 +34,14 @@ export default defineNuxtConfig({
     minify: process.env.NODE_ENV === 'production',
     storage: {
       kv: {
-        driver: process.env.NITRO_KV_DRIVER || 'memory',
-        base: process.env.NITRO_KV_BASE || '.data/kv',
-      },
-    },
-    devStorage: {
-      kv: {
-        driver: 'fs',
-        base: '.data/kv',
+        driver: process.env.NITRO_KV_DRIVER,
+        base: process.env.NITRO_KV_BASE,
       },
     },
   },
   hooks: {
     ready(nuxt) {
-      if (process.env.NUXT_TELEMETRY === 'true') {
+      if (process.env.NUXT_TELEMETRY === 'true' && process.env.npm_lifecycle_event === 'build') {
         fetch(process.env.NUXT_TELEMETRY_URL as string, {
           method: 'POST',
           body: JSON.stringify(nuxt.options, null, 2),
