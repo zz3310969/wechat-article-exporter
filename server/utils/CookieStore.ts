@@ -1,16 +1,17 @@
 import { H3Event, parseCookies } from 'h3';
-import { readFileSync, writeFileSync } from 'node:fs';
-import fs from 'node:fs';
-import path from 'node:path';
-import { root } from '~/server/config';
+import { getMpCookie, setMpCookie } from '~/server/kv/cookie';
+import { getMpToken, setMpToken } from '~/server/kv/token';
 
 // 表示一条 set-cookie 记录的解析结果
-type TCookie = Record<string, string | number>;
+export type CookieEntity = Record<string, string | number>;
 
-// 公众号对应的 cookie 对象 (已解析)
+// 公众号所有的 set-cookie 解析结果
 export class AccountCookie {
-  private readonly _cookie: TCookie[];
+  private readonly _cookie: CookieEntity[];
 
+  /**
+   * @param cookies response.headers.getSetCookie() 的结果，是一个字符串数组
+   */
   constructor(cookies: string[]) {
     this._cookie = this.parse(cookies);
   }
@@ -19,11 +20,11 @@ export class AccountCookie {
     return this.stringify(this._cookie);
   }
 
-  public toJSON(): TCookie[] {
+  public toJSON(): CookieEntity[] {
     return this._cookie;
   }
 
-  public get(name: string): TCookie | undefined {
+  public get(name: string): CookieEntity | undefined {
     return this._cookie.find(cookie => cookie.name === name);
   }
 
@@ -33,13 +34,13 @@ export class AccountCookie {
     return false;
   }
 
-  private parse(cookies: string[]): TCookie[] {
-    // Use a Map to store cookies by name, ensuring the last occurrence overwrites duplicates
-    const cookieMap = new Map<string, TCookie>();
+  private parse(cookies: string[]): CookieEntity[] {
+    // key 为 cookie 的 name
+    const cookieMap = new Map<string, CookieEntity>();
 
     for (const cookie of cookies) {
-      const cookieObj: TCookie = {};
-      // 分割cookie字符串为各个属性
+      const cookieObj: CookieEntity = {};
+      // 分割 cookie 字符串为各个属性
       const parts = cookie.split(';').map(str => str.trim());
 
       // 第一个部分是name=value
@@ -79,11 +80,10 @@ export class AccountCookie {
       }
     }
 
-    // Convert Map values to array
     return Array.from(cookieMap.values());
   }
 
-  private stringify(parsedCookie: TCookie[]): string {
+  private stringify(parsedCookie: CookieEntity[]): string {
     return parsedCookie
       .filter(cookie => cookie.value && cookie.value !== 'EXPIRED')
       .map(cookie => `${cookie.name}=${cookie.value}`)
@@ -94,17 +94,7 @@ export class AccountCookie {
 // 所有用户的 cookie 仓库
 class CookieStore {
   store!: Map<string, AccountCookie>;
-  private readonly cookieDumpFilePath: string;
-
   token!: Map<string, string>;
-  private readonly tokenDumpFilePath: string;
-
-  constructor() {
-    this.cookieDumpFilePath = path.resolve(root, '.data/cookies.json');
-    this.tokenDumpFilePath = path.resolve(root, '.data/tokens.json');
-
-    this.load();
-  }
 
   /**
    * 检索用户的cookie
@@ -126,7 +116,7 @@ class CookieStore {
    */
   setCookie(authKey: string, cookie: string[]) {
     this.store.set(authKey, new AccountCookie(cookie));
-    this.dumpCookies();
+    this.dumpCookies().catch(e => console.error(e));
   }
 
   /**
@@ -137,23 +127,23 @@ class CookieStore {
   updateCookie(authKey: string, newCookies: string[]) {
     // Parse new cookies
     const newAccountCookie = new AccountCookie(newCookies);
-    const newCookieMap = new Map<string, TCookie>(
+    const newCookieMap = new Map<string, CookieEntity>(
       newAccountCookie.toJSON().map(cookie => [cookie.name as string, cookie])
     );
 
     // Get existing cookies, if any
     const existingCookieObj = this.store.get(authKey);
-    let mergedCookies: TCookie[] = [];
+    let mergedCookies: CookieEntity[];
 
     if (existingCookieObj) {
       // Merge existing cookies with new ones, new cookies override duplicates
       const existingCookies = existingCookieObj.toJSON();
-      const existingCookieMap = new Map<string, TCookie>(
+      const existingCookieMap = new Map<string, CookieEntity>(
         existingCookies.map(cookie => [cookie.name as string, cookie])
       );
 
       // Keep all existing cookies, overwrite with new ones if they exist
-      mergedCookies = Array.from(existingCookieMap.entries()).reduce<TCookie[]>((acc, [name, cookie]) => {
+      mergedCookies = Array.from(existingCookieMap.entries()).reduce<CookieEntity[]>((acc, [name, cookie]) => {
         if (newCookieMap.has(name)) {
           // Use new cookie if it exists
           acc.push(newCookieMap.get(name)!);
@@ -185,7 +175,7 @@ class CookieStore {
 
     // Update store with merged cookies
     this.store.set(authKey, new AccountCookie(mergedCookieStrings));
-    this.dumpCookies();
+    this.dumpCookies().catch(e => console.error(e));
   }
 
   /**
@@ -203,15 +193,15 @@ class CookieStore {
    */
   bindToken(authKey: string, token: string) {
     this.token.set(authKey, token);
-    this.dumpTokens();
+    this.dumpTokens().catch(e => console.error(e));
   }
 
   /**
    * 转换为 json 格式，方便存储与传输
    * 返回一个对象，键为 uuid，值为解析后的 cookie 对象
    */
-  toJSON(): Record<string, TCookie[]> {
-    const json: Record<string, TCookie[]> = {};
+  toJSON(): Record<string, CookieEntity[]> {
+    const json: Record<string, CookieEntity[]> = {};
     for (const [authKey, cookieObj] of this.store) {
       json[authKey] = cookieObj.toJSON();
     }
@@ -219,22 +209,20 @@ class CookieStore {
   }
 
   // 从文件中加载
-  load(): void {
-    this.loadCookies();
-    this.loadTokens();
+  async load() {
+    await Promise.all([this.loadCookies(), this.loadTokens()]);
   }
 
-  loadCookies() {
+  async loadCookies() {
     this.store = new Map<string, AccountCookie>();
 
     try {
-      if (!fs.existsSync(this.cookieDumpFilePath)) {
+      const data = await getMpCookie();
+      if (!data) {
         return;
       }
 
-      const data = readFileSync(this.cookieDumpFilePath, 'utf-8');
-      const json = JSON.parse(data) as Record<string, TCookie[]>;
-      for (const [authKey, cookies] of Object.entries(json)) {
+      for (const [authKey, cookies] of Object.entries(data)) {
         // Reconstruct cookie strings from parsed objects
         const cookieStrings = cookies.map(cookie => {
           const parts = [`${cookie.name}=${cookie.value}`];
@@ -252,17 +240,16 @@ class CookieStore {
     }
   }
 
-  loadTokens() {
+  async loadTokens() {
     this.token = new Map<string, string>();
 
     try {
-      if (!fs.existsSync(this.tokenDumpFilePath)) {
+      const data = await getMpToken();
+      if (!data) {
         return;
       }
 
-      const data = readFileSync(this.tokenDumpFilePath, 'utf-8');
-      const json = JSON.parse(data) as Record<string, string>;
-      for (const [authKey, token] of Object.entries(json)) {
+      for (const [authKey, token] of Object.entries(data)) {
         this.token.set(authKey, token);
       }
     } catch (error) {
@@ -270,19 +257,17 @@ class CookieStore {
     }
   }
 
-  dumpCookies() {
+  async dumpCookies() {
     try {
-      const json = JSON.stringify(this.toJSON(), null, 2);
-      writeFileSync(this.cookieDumpFilePath, json, 'utf-8');
+      await setMpCookie(this.toJSON());
     } catch (error) {
       console.error('Failed to save cookie store:', error);
     }
   }
 
-  dumpTokens() {
+  async dumpTokens() {
     try {
-      const json = JSON.stringify(Object.fromEntries(this.token), null, 2);
-      writeFileSync(this.tokenDumpFilePath, json, 'utf-8');
+      await setMpToken(Object.fromEntries(this.token));
     } catch (error) {
       console.error('Failed to save token store:', error);
     }
@@ -290,6 +275,14 @@ class CookieStore {
 }
 
 export const cookieStore = new CookieStore();
+cookieStore
+  .load()
+  .then(() => {
+    console.log('cookie store load success.');
+  })
+  .catch(e => {
+    console.error('cookie store load failed.', e);
+  });
 
 /**
  * 从 CookieStore 中获取 cookie 字符串

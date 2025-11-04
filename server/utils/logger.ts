@@ -1,8 +1,9 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { root } from '~/server/config';
+import { fileURLToPath } from 'node:url';
 
-const logFilePath = path.resolve(root, '.data/request.log');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const logFilePath = path.resolve(__dirname, '.data/request.log');
 
 // 写入日志文件
 function logToFile(prefix: string, message: string) {

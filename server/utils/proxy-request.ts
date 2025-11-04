@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cookieStore, getCookieFromStore } from '~/server/utils/CookieStore';
 import { RequestOptions } from '~/server/types';
 import { logRequest, logResponse } from '~/server/utils/logger';
-import { USER_AGENT } from '~/config';
+import { isDev, USER_AGENT } from '~/config';
 import dayjs from 'dayjs';
 import { H3Event, parseCookies } from 'h3';
 
@@ -47,7 +47,7 @@ export async function proxyMpRequest(options: RequestOptions) {
 
   // 记录请求报文
   const requestId = uuidv4().replace(/-/g, '');
-  if (runtimeConfig.debugMpRequest) {
+  if (runtimeConfig.debugMpRequest && isDev) {
     await logRequest(requestId, request.clone());
   }
 
@@ -57,7 +57,7 @@ export async function proxyMpRequest(options: RequestOptions) {
   updateCookies(options.event, response.headers.getSetCookie());
 
   // 记录响应报文
-  if (runtimeConfig.debugMpRequest) {
+  if (runtimeConfig.debugMpRequest && isDev) {
     await logResponse(requestId, response.clone());
   }
 
@@ -127,22 +127,4 @@ function updateCookies(event: H3Event, cookies: string[]): void {
   if (authKey) {
     cookieStore.updateCookie(authKey, cookies);
   }
-}
-
-export async function proxyNormalRequest(options: RequestOptions) {
-  const headers = new Headers({
-    'User-Agent': USER_AGENT,
-  });
-
-  // 读取参数中的 cookie
-  const cookie: string | undefined = options.cookie;
-  if (cookie) {
-    headers.set('Cookie', cookie);
-  }
-
-  const requestInit: RequestInit = {
-    method: options.method,
-    headers: headers,
-    redirect: options.redirect || 'follow',
-  };
 }
