@@ -979,7 +979,7 @@ async function debug() {
       <header class="flex flex-col items-start 2xl:flex-row 2xl:items-center gap-2 2xl:justify-between px-3 py-2">
         <div class="flex flex-col xl:flex-row gap-2">
           <div class="flex space-x-3">
-            <AccountSelectorForArticle v-model="selectedAccount" class="w-60" />
+            <AccountSelectorForArticle v-model="selectedAccount" class="w-80" />
           </div>
         </div>
         <div class="flex items-center space-x-2">

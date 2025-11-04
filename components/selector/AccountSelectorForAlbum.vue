@@ -3,6 +3,9 @@
     v-model="selected"
     size="md"
     color="gray"
+    searchable
+    searchable-placeholder="搜索公众号名称..."
+    clear-search-on-close
     :options="sortedAccountInfos"
     option-attribute="nickname"
     placeholder="请选择公众号"
