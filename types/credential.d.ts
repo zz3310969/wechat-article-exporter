@@ -1,5 +1,6 @@
 export interface ParsedCredential {
   nickname?: string;
+  avatar?: string;
   biz: string;
   uin: string;
   key: string;

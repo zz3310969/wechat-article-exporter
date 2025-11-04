@@ -39,7 +39,7 @@
           class="block mx-auto my-2 h-10 px-6 font-semibold rounded-md border border-slate-200 text-slate-900 dark:text-slate-300 hover:border-slate-400"
           type="button"
         >
-          下一页
+          加载更多
         </button>
       </div>
     </div>

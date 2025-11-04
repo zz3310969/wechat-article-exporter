@@ -19,6 +19,8 @@ export interface Preferences {
   accountSyncSeconds: number;
 
   api_auth: APIAuth | null;
+
+  syncDateRange: '1d' | '3d' | '7d' | '1m' | '3m' | '6m' | '1y' | 'all';
 }
 
 interface ExportConfig {

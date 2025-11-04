@@ -61,20 +61,6 @@ export const PUBLIC_PROXY_LIST: string[] = [
 ];
 
 /**
- * 扫码状态
- */
-const SCAN_LOGIN_TYPE = {
-  0: '等待扫码',
-  1: '扫码成功，可登录账号=1',
-  2: '扫码成功，可登录账号>1',
-  3: '没有可登录账号',
-  4: '登录失败',
-  5: '二维码已过期',
-  6: '二维码加载失败',
-  7: 'qq号需要绑定邮箱',
-};
-
-/**
  * Credentials 生存时间，单位：分钟
  */
 export const CREDENTIAL_LIVE_MINUTES: number = 25;

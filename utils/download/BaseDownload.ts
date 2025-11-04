@@ -6,6 +6,7 @@ import { sleep, timeout, bestConcurrencyCount } from '~/utils';
 import usePreferences from '~/composables/usePreferences';
 import { PUBLIC_PROXY_LIST } from '~/config';
 import { DEFAULT_OPTIONS } from './constants';
+import { getArticleByLink } from '~/store/v2/article';
 
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
@@ -17,7 +18,7 @@ const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Prefere
 //   2. 阅读量和留言数据由于使用了Credential，为了防止抓取过快，只能设置较低的并发量（通常为2）
 
 export class BaseDownload {
-  protected readonly fakeid: string;
+  // protected readonly fakeid: string;
   protected readonly urls: string[];
   protected readonly pending: Set<string>;
   protected readonly completed: Set<string>;
@@ -30,7 +31,7 @@ export class BaseDownload {
   public readonly proxyManager: ProxyManager;
   protected events: Map<string, Listener[]>;
 
-  constructor(fakeid: string, urls: string[], options: DownloadOptions = {}) {
+  constructor(urls: string[], options: DownloadOptions = {}) {
     this.validateInputs(urls);
 
     const proxies = (preferences.value as Preferences).privateProxyList || [];
@@ -39,7 +40,7 @@ export class BaseDownload {
       proxies.push(...PUBLIC_PROXY_LIST);
     }
 
-    this.fakeid = fakeid;
+    // this.fakeid = fakeid;
     this.urls = [...urls].reverse();
     this.pending = new Set();
     this.completed = new Set();
@@ -138,12 +139,17 @@ export class BaseDownload {
     const abortController = new AbortController();
     this.abortControllers.set(url, abortController);
 
+    const article = await getArticleByLink(url);
+    if (!article) {
+      throw new Error(`${url} cached not found`);
+    }
+
     try {
       const headers: Record<string, string> = {};
 
       // 使用设置的 credentials 来抓取元数据
       if (withCredential) {
-        const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
+        const targetCredential = credentials.value.find(item => item.biz === article.fakeid && item.valid);
         if (targetCredential) {
           headers.cookie = `pass_ticket=${targetCredential.pass_ticket};wap_sid2=${targetCredential.wap_sid2}`;
         }
@@ -185,12 +191,12 @@ export class BaseDownload {
   }
 
   // 当获取阅读量和留言数据时，需要验证 Credential 是否设置正确
-  protected validateCredential() {
-    const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
-    if (!targetCredential) {
-      throw new Error('目标公众号的 Credential 未设置');
-    }
-  }
+  // protected validateCredential() {
+  //   const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
+  //   if (!targetCredential) {
+  //     throw new Error('目标公众号的 Credential 未设置');
+  //   }
+  // }
 
   // 验证文章 html 内容是否下载完整
   protected validateHTMLContent(html: string): ['Success' | 'Failure' | 'Deleted' | 'Checking', string | null] {

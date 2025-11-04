@@ -29,6 +29,7 @@ import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { PreviewArticle } from '#components';
 import TurndownService from 'turndown';
 import type { Preferences } from '~/types/preferences';
+import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
 
 let globalRowData: Article[] = [];
 
@@ -492,7 +493,7 @@ async function downloadArticleHTML() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Downloader(selectedAccount.value!.fakeid, urls);
+  const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
     console.log(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
@@ -561,7 +562,7 @@ async function downloadArticleMetadata() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Downloader(selectedAccount.value!.fakeid, urls);
+  const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
     console.log(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
@@ -634,7 +635,7 @@ async function downloadArticleComment() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Downloader(selectedAccount.value!.fakeid, urls);
+  const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
     console.log(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
@@ -690,7 +691,7 @@ async function export2excel() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '导出中';
     progress_1.value = 0;
@@ -734,7 +735,7 @@ async function export2json() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '导出中';
     progress_1.value = 0;
@@ -778,7 +779,7 @@ async function export2html() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '资源解析中';
     progress_1.value = 0;
@@ -832,7 +833,7 @@ async function export2txt() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '资源解析中';
     progress_1.value = 0;
@@ -878,7 +879,7 @@ async function export2markdown() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '资源解析中';
     progress_1.value = 0;
@@ -924,7 +925,7 @@ async function export2word() {
 
   const urls: string[] = selectedRows.map(article => article.link);
 
-  const manager = new Exporter(selectedAccount.value!.fakeid, urls);
+  const manager = new Exporter(urls);
   manager.on('export:begin', () => {
     exportPhase.value = '资源解析中';
     progress_1.value = 0;
@@ -970,9 +971,7 @@ async function debug() {
 <template>
   <div class="h-full">
     <Teleport defer to="#title">
-      <h1 class="text-[28px] leading-[34px] text-slate-12 dark:text-slate-50 font-bold">
-        文章 <span class="text-sm text-slate-10">本地已缓存文章</span>
-      </h1>
+      <h1 class="text-[28px] leading-[34px] text-slate-12 dark:text-slate-50 font-bold">文章下载</h1>
     </Teleport>
 
     <div class="flex flex-col h-full divide-y divide-gray-200">

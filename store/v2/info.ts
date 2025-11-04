@@ -15,6 +15,9 @@ export interface Info {
   total_count: number;
   create_time?: number;
   update_time?: number;
+
+  // 最后更新时间
+  last_update_time?: number;
 }
 
 /**
@@ -48,6 +51,17 @@ export async function updateInfoCache(info: Info): Promise<boolean> {
       };
     }
     db.info.put(infoCache);
+    return true;
+  });
+}
+
+export async function updateLastUpdateTime(fakeid: string): Promise<boolean> {
+  return db.transaction('rw', 'info', async () => {
+    let infoCache = await db.info.get(fakeid);
+    if (infoCache) {
+      infoCache.last_update_time = Math.round(Date.now() / 1000);
+      db.info.put(infoCache);
+    }
     return true;
   });
 }

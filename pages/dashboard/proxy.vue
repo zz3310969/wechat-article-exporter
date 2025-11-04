@@ -26,9 +26,10 @@
 <script setup lang="ts">
 import type { ResultProxyStatus } from '~/types/proxy';
 import { Loader } from 'lucide-vue-next';
+import { websiteName } from '~/config';
 
 useHead({
-  title: '公共代理 | 微信公众号文章导出',
+  title: `公共代理 | ${websiteName}`,
 });
 
 const loading = ref(false);
@@ -40,7 +41,7 @@ const totalFailure = computed(() => monitorList.value.filter(item => item.curren
 async function getMonitorList() {
   loading.value = true;
   try {
-    monitorList.value = await fetch('/api/status').then(res => res.json());
+    monitorList.value = await fetch('/api/web/misc/status').then(res => res.json());
   } catch (error) {
     console.log(error);
   } finally {

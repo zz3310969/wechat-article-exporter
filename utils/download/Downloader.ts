@@ -22,8 +22,10 @@ export class Downloader extends BaseDownload {
   // 下载的类型
   private downloadType: DownloadType = 'html';
 
-  constructor(fakeid: string, urls: string[], options: DownloadOptions = {}) {
-    super(fakeid, urls, options);
+  private isStopping: boolean = false;
+
+  constructor(urls: string[], options: DownloadOptions = {}) {
+    super(urls, options);
   }
 
   // 启动抓取任务
@@ -33,7 +35,7 @@ export class Downloader extends BaseDownload {
     }
     this.downloadType = type;
     if (['metadata', 'comments'].includes(this.downloadType)) {
-      this.validateCredential();
+      // this.validateCredential();
     }
 
     this.isProcessing = true;
@@ -54,15 +56,24 @@ export class Downloader extends BaseDownload {
     }
   }
 
+  // 停止下载任务
+  public stop() {
+    this.isStopping = true;
+  }
+
   // 处理下载任务队列
   private async processDownloadQueue() {
     const activePromises: Promise<any>[] = [];
 
-    while (this.urls.length > 0 || activePromises.length > 0) {
+    begin: while (this.urls.length > 0 || activePromises.length > 0) {
       // 检查是否需要启动新的下载任务，需同时满足以下两点:
       // - 没有达到并发量限制
       // - 还有更多 URL 需要下载
       while (activePromises.length < this.options.concurrency && this.urls.length > 0) {
+        if (this.isStopping) {
+          break begin;
+        }
+
         // 启动新的下载任务
         const url: string = this.urls.pop()!;
         const promise = this.processTask(url);
@@ -82,6 +93,10 @@ export class Downloader extends BaseDownload {
       if (activePromises.length > 0) {
         await Promise.race(activePromises);
       }
+    }
+
+    if (this.isStopping) {
+      this.emit('download:stop');
     }
   }
 
@@ -288,7 +303,7 @@ export class Downloader extends BaseDownload {
         const proxy = this.proxyManager.getBestProxy();
 
         try {
-          const response = await this.fetchComments(cached.commentID!, buffer, proxy);
+          const response = await this.fetchComments(cached.fakeid, cached.commentID!, buffer, proxy);
           this.proxyManager.recordSuccess(proxy);
 
           if (response.base_resp.ret === 0) {
@@ -330,6 +345,7 @@ export class Downloader extends BaseDownload {
 
         try {
           const response = await this.fetchCommentReply(
+            cached.fakeid,
             cached.commentID!,
             comment.content_id,
             comment.reply_new.max_reply_id,
@@ -367,13 +383,18 @@ export class Downloader extends BaseDownload {
   }
 
   // 获取留言数据
-  private async fetchComments(commentID: string, buffer: string, proxy: string): Promise<CommentResponse> {
+  private async fetchComments(
+    fakeid: string,
+    commentID: string,
+    buffer: string,
+    proxy: string
+  ): Promise<CommentResponse> {
     const abortController = new AbortController();
     this.abortControllers.set(commentID, abortController);
 
     try {
       // 使用设置的 credentials 来抓取留言
-      const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
+      const targetCredential = credentials.value.find(item => item.biz === fakeid && item.valid);
       if (!targetCredential) {
         throw new Error('目标公众号的 Credential 未设置');
       }
@@ -401,6 +422,7 @@ export class Downloader extends BaseDownload {
 
   // 获取留言评论
   private async fetchCommentReply(
+    fakeid: string,
     commentID: string,
     contentID: string,
     maxReplyID: number,
@@ -411,7 +433,7 @@ export class Downloader extends BaseDownload {
 
     try {
       // 使用设置的 credentials 来抓取留言
-      const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
+      const targetCredential = credentials.value.find(item => item.biz === fakeid && item.valid);
       if (!targetCredential) {
         throw new Error('目标公众号的 Credential 未设置');
       }

@@ -27,10 +27,18 @@ export function formatItemShowType(type: number) {
 }
 
 // 工具函数：将时长字符串转为秒数
-export function durationToSeconds(duration: string) {
+export function durationToSeconds(duration: string | undefined) {
   if (!duration) return 0;
   const [min, sec] = duration.split(':').map(Number);
   return min * 60 + sec;
+}
+
+export function formatNumber(num: any): string {
+  if (typeof num === 'number') {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  } else {
+    return num.toString();
+  }
 }
 
 /**
@@ -883,13 +891,6 @@ export function formatElapsedTime(seconds: number): string {
     result += `${secs}秒`;
   }
   return result;
-}
-
-export function formatNum(n: number | undefined): string {
-  if (n === undefined) {
-    return '';
-  }
-  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 export function maxLen(text: string, max = 35): string {

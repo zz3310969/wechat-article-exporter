@@ -21,8 +21,10 @@
 </template>
 
 <script setup lang="ts">
+import { websiteName } from '~/config';
+
 useHead({
-  title: '变更记录 | 微信公众号文章导出',
+  title: `变更记录 | ${websiteName}`,
 });
 
 interface ChangeLogEntry {
@@ -31,6 +33,22 @@ interface ChangeLogEntry {
 }
 
 const changelog: ChangeLogEntry[] = [
+  {
+    date: '2025-09-11',
+    description: '重构后端接口，使用 CookieStore 统一网站与API接口调用',
+  },
+  {
+    date: '2025-09-05',
+    description: '文章下载页面支持多公众号选择，支持按公众号分组显示',
+  },
+  {
+    date: '2025-08-27',
+    description: '增加同步时间范围设置项',
+  },
+  {
+    date: '2025-07-31',
+    description: '增加在线接口调试工具',
+  },
   {
     date: '2025-07-28',
     description: '提供初步的 API 支持',
@@ -53,7 +71,7 @@ const changelog: ChangeLogEntry[] = [
   },
   {
     date: '2025-07-11',
-    description: '优化文章下载页面的表格性能，支持大数据量的渲染；优化excel/json导出，可以配置导出文章内容和评论数据',
+    description: '优化文章下载页面的表格性能，支持大数据量的渲染；优化excel/json导出，可以配置导出文章内容和留言数据',
   },
   {
     date: '2025-07-09',

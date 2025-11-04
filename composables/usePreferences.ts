@@ -17,6 +17,7 @@ const defaultOptions: Partial<Preferences> = {
   },
   accountSyncSeconds: 5,
   api_auth: null,
+  syncDateRange: 'all',
 };
 
 export default () => {

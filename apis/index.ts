@@ -10,29 +10,9 @@ import { ACCOUNT_LIST_PAGE_SIZE, ARTICLE_LIST_PAGE_SIZE } from '~/config';
 import { updateAPICache } from '~/store/v2/api';
 import { updateArticleCache } from '~/store/v2/article';
 import type { CommentResponse } from '~/types/comment';
-import type { Info } from '~/store/v2/info';
-
-interface AuthorInfoResponse {
-  base_resp: { ret: number };
-  identity_name: string;
-  is_verify: number;
-  original_article_count: number;
-}
+import { type Info, updateLastUpdateTime } from '~/store/v2/info';
 
 const loginAccount = useLoginAccount();
-
-/**
- * 获取公众号主体信息
- * @param biz
- */
-export async function authorInfo(biz: string) {
-  return await $fetch<AuthorInfoResponse>('/api/authorinfo', {
-    method: 'GET',
-    query: {
-      biz: biz,
-    },
-  });
-}
 
 /**
  * 获取文章列表
@@ -47,7 +27,7 @@ export async function getArticleList(
   begin = 0,
   keyword = ''
 ): Promise<[AppMsgEx[], boolean, number]> {
-  const resp = await $fetch<AppMsgPublishResponse>('/api/appmsgpublish', {
+  const resp = await $fetch<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
     method: 'GET',
     query: {
       id: account.fakeid,
@@ -90,12 +70,17 @@ export async function getArticleList(
       }
     }
 
+    if (begin === 0) {
+      await updateLastUpdateTime(account.fakeid);
+    }
+
     const articles = publish_list.flatMap(item => {
       const publish_info: PublishInfo = JSON.parse(item.publish_info);
       return publish_info.appmsgex;
     });
     return [articles, isCompleted, publish_page.total_count];
   } else if (resp.base_resp.ret === 200003) {
+    loginAccount.value = null;
     throw new Error('session expired');
   } else {
     throw new Error(`${resp.base_resp.ret}:${resp.base_resp.err_msg}`);
@@ -109,7 +94,7 @@ export async function getArticleList(
  * @param keyword
  */
 export async function getAccountList(token: string, begin = 0, keyword = ''): Promise<[AccountInfo[], boolean]> {
-  const resp = await $fetch<SearchBizResponse>('/api/searchbiz', {
+  const resp = await $fetch<SearchBizResponse>('/api/web/mp/searchbiz', {
     method: 'GET',
     query: {
       keyword: keyword,
@@ -140,6 +125,7 @@ export async function getAccountList(token: string, begin = 0, keyword = ''): Pr
 
     return [resp.list, isCompleted];
   } else if (resp.base_resp.ret === 200003) {
+    loginAccount.value = null;
     throw new Error('session expired');
   } else {
     throw new Error(`${resp.base_resp.ret}:${resp.base_resp.err_msg}`);
@@ -158,7 +144,7 @@ export async function getComment(commentId: string) {
       console.log('credentials not set');
       return null;
     }
-    const response = await $fetch<CommentResponse>('/api/comment', {
+    const response = await $fetch<CommentResponse>('/api/web/misc/comment', {
       method: 'get',
       query: {
         comment_id: commentId,
