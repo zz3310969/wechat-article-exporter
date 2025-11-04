@@ -23,8 +23,6 @@
     "@vueuse/nuxt": "^10.11.0",
     "ag-grid-enterprise": "^34.0.0",
     "ag-grid-vue3": "^34.0.0",
-    "chart.js": "^4.4.3",
-    "chartjs-adapter-dayjs-4": "^1.0.4",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.12",
     "dexie": "^4.0.11",
@@ -41,9 +39,7 @@
     "p-queue": "^8.0.1",
     "turndown": "^7.2.0",
     "uuid": "^11.0.3",
-    "v-calendar": "^3.1.2",
     "vue": "^3.5.22",
-    "vue-chartjs": "^5.3.1",
     "vue-shadow-dom": "^4.2.0",
     "zod": "^3.23.8"
   },
