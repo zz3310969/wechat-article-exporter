@@ -12,6 +12,7 @@
 <script setup lang="ts">
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
+import * as Sentry from '@sentry/nuxt';
 
 const isDev = !import.meta.env.PROD;
 const runtimeConfig = useRuntimeConfig();
@@ -32,6 +33,9 @@ useHead({
       : '',
   ],
 });
+
+Sentry.captureMessage('client:cookie store load success.', 'info');
+Sentry.logger.info('client:cookie store load success.', { log_source: 'sentry_test' });
 </script>
 
 <style>

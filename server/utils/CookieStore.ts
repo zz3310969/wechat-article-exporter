@@ -280,8 +280,8 @@ cookieStore
   .load()
   .then(() => {
     console.log('cookie store load success.');
-    Sentry.captureMessage('cookie store load success.', 'info');
-    Sentry.logger.info('cookie store load success.', { log_source: 'sentry_test' });
+    Sentry.captureMessage('server:cookie store load success.', 'info');
+    Sentry.logger.info('server:cookie store load success.', { log_source: 'sentry_test' });
   })
   .catch(e => {
     console.error('cookie store load failed.', e);
