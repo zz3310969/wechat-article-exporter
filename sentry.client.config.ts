@@ -14,13 +14,8 @@ if (process.env.NODE_ENV === 'production' && dsn) {
 
     integrations: [
       Sentry.browserTracingIntegration({ router: useRouter() }), // 路由追踪
-      Sentry.replayIntegration({
-        // 会话重放
-        // maskAllText: false,
-        // blockAllMedia: false,
-      }),
+      Sentry.replayIntegration(),
       Sentry.feedbackIntegration({
-        // Additional SDK configuration goes in here, for example:
         colorScheme: 'system',
       }),
 
