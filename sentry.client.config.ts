@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === 'production' && dsn) {
   Sentry.init({
     dsn: dsn,
     environment: process.env.NODE_ENV || 'development',
-    sendDefaultPii: true,
+    // sendDefaultPii: true,
     integrations: [
       Sentry.browserTracingIntegration({ router: useRouter() }), // 路由追踪
       Sentry.replayIntegration({

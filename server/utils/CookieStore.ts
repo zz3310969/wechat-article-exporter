@@ -280,14 +280,14 @@ cookieStore
   .load()
   .then(() => {
     console.log('cookie store load success.');
-    Sentry.captureMessage('server:cookie store load success.', 'info');
     Sentry.logger.info('server:cookie store load success.', { log_source: 'sentry_test' });
   })
   .catch(e => {
     console.error('cookie store load failed.', e);
-    Sentry.captureMessage('cookie store load failed.', 'error');
-    Sentry.logger.info('cookie store load failed.', { log_source: 'sentry_test' });
+    Sentry.logger.error('server:cookie store load failed.', { log_source: 'sentry_test' });
   });
+Sentry.logger.info('server:init.', { log_source: 'sentry_test' });
+console.log('server: this is a normal log message');
 
 /**
  * 从 CookieStore 中获取 cookie 字符串
