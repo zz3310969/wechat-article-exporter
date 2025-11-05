@@ -5,12 +5,15 @@ export default defineNuxtConfig({
     // enabled: process.env.NODE_ENV !== 'production',
     enabled: false,
   },
-  modules: ['@vueuse/nuxt', '@nuxt/ui', 'nuxt-monaco-editor'],
+  modules: ['@vueuse/nuxt', '@nuxt/ui', 'nuxt-monaco-editor', '@sentry/nuxt/module'],
   ssr: false,
   runtimeConfig: {
     public: {
       umamiWebsiteID: '',
       aggridLicense: '',
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
+      },
     },
     debugMpRequest: false,
   },
@@ -30,7 +33,9 @@ export default defineNuxtConfig({
       ],
     },
   },
-  sourcemap: process.env.NODE_ENV !== 'production',
+  sourcemap: {
+    client: 'hidden',
+  },
   nitro: {
     minify: process.env.NODE_ENV === 'production',
     storage: {
@@ -79,4 +84,9 @@ export default defineNuxtConfig({
       diffEditor: 'MonacoDiffEditor', // 差异编辑器组件名
     },
   },
+  // sentry: {
+  //   org: 'your-org-slug',
+  //   project: 'your-project-slug',
+  //   authToken: process.env.SENTRY_AUTH_TOKEN,
+  // },
 });
