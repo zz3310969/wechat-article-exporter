@@ -281,10 +281,12 @@ cookieStore
   .then(() => {
     console.log('cookie store load success.');
     Sentry.captureMessage('cookie store load success.', 'info');
+    Sentry.logger.info('cookie store load success.', { log_source: 'sentry_test' });
   })
   .catch(e => {
     console.error('cookie store load failed.', e);
     Sentry.captureMessage('cookie store load failed.', 'error');
+    Sentry.logger.info('cookie store load failed.', { log_source: 'sentry_test' });
   });
 
 /**
