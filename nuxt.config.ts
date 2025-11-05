@@ -84,9 +84,9 @@ export default defineNuxtConfig({
       diffEditor: 'MonacoDiffEditor', // 差异编辑器组件名
     },
   },
-  // sentry: {
-  //   org: 'your-org-slug',
-  //   project: 'your-project-slug',
-  //   authToken: process.env.SENTRY_AUTH_TOKEN,
-  // },
+  sentry: {
+    org: 'wechat-article',
+    project: 'wechat-article-exporter',
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+  },
 });

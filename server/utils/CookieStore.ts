@@ -1,6 +1,7 @@
 import { H3Event, parseCookies } from 'h3';
 import { getMpCookie, setMpCookie } from '~/server/kv/cookie';
 import { getMpToken, setMpToken } from '~/server/kv/token';
+import * as Sentry from '@sentry/nuxt';
 
 // 表示一条 set-cookie 记录的解析结果
 export type CookieEntity = Record<string, string | number>;
@@ -279,9 +280,11 @@ cookieStore
   .load()
   .then(() => {
     console.log('cookie store load success.');
+    Sentry.captureMessage('cookie store load success.', 'info');
   })
   .catch(e => {
     console.error('cookie store load failed.', e);
+    Sentry.captureMessage('cookie store load failed.', 'error');
   });
 
 /**
