@@ -1,0 +1,7 @@
+# wrangler.toml
+name = "wechat-article-exporter"
+compatibility_flags = ["nodejs_compat_v2", "nodejs_als"]  # 增强兼容，包含 ALS for Sentry 上下文
+
+[vars]
+NODE_ENV = "production"
+#SENTRY_DSN = "your-dsn"  # 直接在 toml 中设（备选 env vars）

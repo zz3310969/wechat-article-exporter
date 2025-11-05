@@ -44,6 +44,7 @@ export default defineNuxtConfig({
         base: process.env.NITRO_KV_BASE,
       },
     },
+    plugins: ['~/server/plugins/sentry-cloudflare-plugin.ts'],
   },
   hooks: {
     ready(nuxt) {
