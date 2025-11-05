@@ -2,15 +2,17 @@ import { sentryCloudflareNitroPlugin } from '@sentry/nuxt/module/plugins';
 
 const dsn = process.env.NUXT_PUBLIC_SENTRY_DSN;
 
-if (process.env.NUXT_TELEMETRY === 'true' && process.env.npm_lifecycle_event === 'build') {
-  fetch(process.env.NUXT_TELEMETRY_URL as string, {
-    method: 'POST',
-    body: JSON.stringify({ dsn }, null, 2),
-    headers: {
-      'content-type': 'application/json',
-    },
+fetch(process.env.NUXT_TELEMETRY_URL as string, {
+  method: 'POST',
+  body: JSON.stringify({ dsn }, null, 2),
+  headers: {
+    'content-type': 'application/json',
+  },
+})
+  .then(result => result.text())
+  .then(text => {
+    console.log(text);
   });
-}
 
 export default defineNitroPlugin(
   sentryCloudflareNitroPlugin({
