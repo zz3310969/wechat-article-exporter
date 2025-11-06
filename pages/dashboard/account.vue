@@ -152,7 +152,7 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
     timer.value = window.setTimeout(
       () => {
         if (isCanceled.value) {
-          console.log('已取消');
+          console.warn('已取消');
           isCanceled.value = false;
           promise.reject(new Error('已取消'));
           return;

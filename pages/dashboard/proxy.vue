@@ -43,7 +43,7 @@ async function getMonitorList() {
   try {
     monitorList.value = await fetch('/api/web/misc/status').then(res => res.json());
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     loading.value = false;
   }

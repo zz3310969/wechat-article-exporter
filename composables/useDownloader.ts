@@ -39,7 +39,7 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
 
     manager = new Downloader(urls);
     manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-      console.log(
+      console.debug(
         `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
       );
       completed_count.value = status.completed.length;
@@ -58,12 +58,12 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
       }
     });
     manager.on('download:begin', () => {
-      console.log('开始抓取【文章内容】...');
+      console.debug('开始抓取【文章内容】...');
       completed_count.value = 0;
       total_count.value = urls.length;
     });
     manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success(
         '【文章内容】抓取完成',
         `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}, 检测到已被删除:${status.deleted.length}`
@@ -93,7 +93,7 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
 
     manager = new Downloader(urls);
     manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-      console.log(
+      console.debug(
         `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
       );
       completed_count.value = status.completed.length;
@@ -114,12 +114,12 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
       }
     });
     manager.on('download:begin', () => {
-      console.log('开始抓取【阅读量】...');
+      console.debug('开始抓取【阅读量】...');
       completed_count.value = 0;
       total_count.value = urls.length;
     });
     manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success(
         '【阅读量】抓取完成',
         `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}, 检测到已被删除:${status.deleted.length}`
@@ -146,7 +146,7 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
 
     manager = new Downloader(urls);
     manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-      console.log(
+      console.debug(
         `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
       );
       completed_count.value = status.completed.length;
@@ -155,12 +155,12 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
       }
     });
     manager.on('download:begin', () => {
-      console.log('开始抓取【留言内容】...');
+      console.debug('开始抓取【留言内容】...');
       completed_count.value = 0;
       total_count.value = urls.length;
     });
     manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success(
         '【留言内容】抓取完成',
         `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}`

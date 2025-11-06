@@ -243,7 +243,7 @@ async function fetchCredentials() {
       result = await response.json();
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     authorized.value = false;
     stop();
     return;

@@ -91,11 +91,11 @@ export async function downloadArticleHTML(articleURL: string, title?: string) {
     const $layout = document.querySelector('#js_fullscreen_layout_padding');
     if (!$jsContent) {
       if ($layout) {
-        console.log(`文章(${title})已被删除，跳过下载`);
+        console.warn(`文章(${title})已被删除，跳过下载`);
         return 0;
       }
 
-      console.log(`文章(${title})下载失败`);
+      console.warn(`文章(${title})下载失败`);
       throw new Error('下载失败，请重试');
     }
     html = fullHTML;
@@ -130,11 +130,11 @@ export async function downloadArticleHTMLs(articles: DownloadableArticle[], call
     const $layout = document.querySelector('#js_fullscreen_layout_padding');
     if (!$jsContent) {
       if ($layout) {
-        console.log(`文章(${article.title})已被删除，跳过下载`);
+        console.warn(`文章(${article.title})已被删除，跳过下载`);
         return 0;
       }
 
-      console.log(`文章(${article.title})下载失败`);
+      console.warn(`文章(${article.title})下载失败`);
       throw new Error('下载失败，请重试');
     }
 

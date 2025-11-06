@@ -495,7 +495,7 @@ async function downloadArticleHTML() {
 
   const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.log(
+    console.debug(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
     );
     progress_1.value = status.completed.length;
@@ -526,12 +526,12 @@ async function downloadArticleHTML() {
     }
   });
   manager.on('download:begin', () => {
-    console.log('开始抓取【文章内容】...');
+    console.debug('开始抓取【文章内容】...');
     progress_1.value = 0;
     progress_2.value = urls.length;
   });
   manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -564,7 +564,7 @@ async function downloadArticleMetadata() {
 
   const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.log(
+    console.debug(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
     );
     progress_1.value = status.completed.length;
@@ -599,12 +599,12 @@ async function downloadArticleMetadata() {
     }
   });
   manager.on('download:begin', () => {
-    console.log('开始抓取【阅读量】...');
+    console.debug('开始抓取【阅读量】...');
     progress_1.value = 0;
     progress_2.value = urls.length;
   });
   manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -637,7 +637,7 @@ async function downloadArticleComment() {
 
   const manager = new Downloader(urls);
   manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.log(
+    console.debug(
       `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
     );
     progress_1.value = status.completed.length;
@@ -652,12 +652,12 @@ async function downloadArticleComment() {
     }
   });
   manager.on('download:begin', () => {
-    console.log('开始抓取【留言内容】...');
+    console.debug('开始抓取【留言内容】...');
     progress_1.value = 0;
     progress_2.value = urls.length;
   });
   manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -704,7 +704,7 @@ async function export2excel() {
     progress_1.value = num;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -748,7 +748,7 @@ async function export2json() {
     progress_1.value = num;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -802,7 +802,7 @@ async function export2html() {
     progress_1.value = index;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -848,7 +848,7 @@ async function export2txt() {
     progress_1.value = index;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -894,7 +894,7 @@ async function export2markdown() {
     progress_1.value = index;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -940,7 +940,7 @@ async function export2word() {
     progress_1.value = index;
   });
   manager.on('export:finish', (seconds: number) => {
-    console.log('耗时:', formatElapsedTime(seconds));
+    console.debug('耗时:', formatElapsedTime(seconds));
     toast.add({
       id: 'update_downloaded',
       color: 'purple',
@@ -964,7 +964,7 @@ async function export2word() {
 async function debug() {
   const turndownService = new TurndownService();
   const markdown = turndownService.turndown('<h1>Hello world!</h1>');
-  console.log(markdown);
+  console.debug(markdown);
 }
 </script>
 

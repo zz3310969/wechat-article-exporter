@@ -45,7 +45,7 @@ export class Exporter extends BaseDownload {
       try {
         await this.acquireExportDirectoryHandle();
       } catch (err) {
-        console.log(err);
+        console.error(err);
         return;
       }
     }
@@ -226,7 +226,7 @@ export class Exporter extends BaseDownload {
 
     for (let i = 0; i < total; i++) {
       const url = this.urls[i];
-      console.log(`(${i + 1}/${total})开始导出: ${url}`);
+      console.debug(`(${i + 1}/${total})开始导出: ${url}`);
 
       const article = await getArticleByLink(url);
       const exportedArticle: ExcelExportEntity = { ...article };
@@ -259,7 +259,7 @@ export class Exporter extends BaseDownload {
 
     for (let i = 0; i < total; i++) {
       const url = this.urls[i];
-      console.log(`(${i + 1}/${total})开始导出: ${url}`);
+      console.debug(`(${i + 1}/${total})开始导出: ${url}`);
 
       const article = await getArticleByLink(url);
       const exportedArticle: ExcelExportEntity = { ...article };
@@ -289,7 +289,7 @@ export class Exporter extends BaseDownload {
   // 导出 html 文件
   private async exportHtmlFiles() {
     const total = this.urls.length;
-    console.log(`总共${total}篇文章`);
+    console.debug(`总共${total}篇文章`);
     this.emit('export:write', total);
 
     for (let i = 0; i < total; i++) {
@@ -302,7 +302,7 @@ export class Exporter extends BaseDownload {
 
       const dirname = await this.exportDirName(cached.url);
 
-      console.log(`(${i + 1}/${total})开始导出: ${cached.title}，目录名: ${dirname}`);
+      console.debug(`(${i + 1}/${total})开始导出: ${cached.title}，目录名: ${dirname}`);
       const html = await cached.file.text();
       const resourceMap = await getResourceMapCache(url);
       if (!resourceMap) {
@@ -343,7 +343,7 @@ export class Exporter extends BaseDownload {
       const url = this.urls[i];
 
       const filename = await this.exportDirName(url);
-      console.log(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
+      console.debug(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
 
       const content = await Exporter.getPureContent(url, 'text', parser);
       if (!content) {
@@ -369,7 +369,7 @@ export class Exporter extends BaseDownload {
       const url = this.urls[i];
 
       const filename = await this.exportDirName(url);
-      console.log(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
+      console.debug(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
 
       const content = await Exporter.getPureContent(url, 'html', parser);
       if (!content) {
@@ -395,7 +395,7 @@ export class Exporter extends BaseDownload {
       const url = this.urls[i];
 
       const filename = await this.exportDirName(url);
-      console.log(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
+      console.debug(`(${i + 1}/${total})开始导出: ${filename}(${url})`);
 
       const content = await Exporter.getPureContent(url, 'html', parser);
       if (!content) {
@@ -799,10 +799,10 @@ ${commentHTML}
   public async exportDebugInfo(): Promise<void> {
     const debugs = await getDebugInfo();
     const total = debugs.length;
-    console.log(`总共${total}条调试数据`);
+    console.debug(`总共${total}条调试数据`);
     for (let i = 0; i < total; i++) {
       const asset = debugs[i];
-      console.log(`(${i + 1}/${total})开始导出: ${asset.title}`);
+      console.debug(`(${i + 1}/${total})开始导出: ${asset.title}`);
       await this.writeFile(asset.type + '_' + filterInvalidFilenameChars(asset.title) + '.html', asset.file);
     }
 

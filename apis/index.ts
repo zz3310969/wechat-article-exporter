@@ -58,7 +58,7 @@ export async function getArticleList(account: Info, begin = 0, keyword = ''): Pr
       try {
         await updateArticleCache(account, publish_page);
       } catch (e) {
-        console.info('缓存失败');
+        console.warn('缓存失败');
         console.error(e);
       }
     }
@@ -132,7 +132,7 @@ export async function getComment(commentId: string) {
     // 本地设置的 credentials
     const credentials = JSON.parse(window.localStorage.getItem('credentials')!);
     if (!credentials || !credentials.__biz || !credentials.pass_ticket || !credentials.key || !credentials.uin) {
-      console.log('credentials not set');
+      console.warn('credentials not set');
       return null;
     }
     const response = await $fetch<CommentResponse>('/api/web/misc/comment', {

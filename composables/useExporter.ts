@@ -31,7 +31,7 @@ export default () => {
       completed_count.value = num;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('Excel 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
@@ -66,7 +66,7 @@ export default () => {
       completed_count.value = num;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('Json 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
@@ -111,7 +111,7 @@ export default () => {
       completed_count.value = index;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('HTML 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
@@ -148,7 +148,7 @@ export default () => {
       completed_count.value = index;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('Txt 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
@@ -185,7 +185,7 @@ export default () => {
       completed_count.value = index;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('Markdown 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
@@ -222,7 +222,7 @@ export default () => {
       completed_count.value = index;
     });
     manager.on('export:finish', (seconds: number) => {
-      console.log('耗时:', formatElapsedTime(seconds));
+      console.debug('耗时:', formatElapsedTime(seconds));
       toast.success('Word 导出完成', `本次导出耗时 ${formatElapsedTime(seconds)}`);
     });
 
