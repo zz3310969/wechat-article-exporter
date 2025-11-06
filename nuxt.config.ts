@@ -4,14 +4,13 @@ export default defineNuxtConfig({
   devtools: {
     enabled: false,
   },
-  modules: ['@vueuse/nuxt', '@nuxt/ui', 'nuxt-monaco-editor', '@sentry/nuxt/module'],
+  modules: ['@vueuse/nuxt', '@nuxt/ui', 'nuxt-monaco-editor', '@sentry/nuxt/module', 'nuxt-umami'],
   ssr: false,
   runtimeConfig: {
     public: {
-      umamiWebsiteID: '',
-      aggridLicense: '',
+      aggridLicense: process.env.NUXT_AGGRID_LICENSE,
       sentry: {
-        dsn: process.env.SENTRY_DSN,
+        dsn: process.env.NUXT_SENTRY_DSN,
       },
     },
     debugMpRequest: false,
@@ -83,9 +82,22 @@ export default defineNuxtConfig({
       diffEditor: 'MonacoDiffEditor', // 差异编辑器组件名
     },
   },
+
+  // https://docs.sentry.io/platforms/javascript/guides/nuxt/manual-setup/
   sentry: {
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-    authToken: process.env.SENTRY_AUTH_TOKEN,
+    org: process.env.NUXT_SENTRY_ORG,
+    project: process.env.NUXT_SENTRY_PROJECT,
+    authToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+  },
+
+  // https://umami.nuxt.dev/api/configuration
+  umami: {
+    enabled: true,
+    id: process.env.NUXT_UMAMI_ID,
+    host: process.env.NUXT_UMAMI_HOST,
+    domains: ['down.mptext.top'],
+    ignoreLocalhost: true,
+    autoTrack: true,
+    logErrors: true,
   },
 });
