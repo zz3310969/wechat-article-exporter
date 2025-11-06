@@ -15,9 +15,9 @@ if (process.env.NODE_ENV === 'production' && dsn) {
     integrations: [
       Sentry.browserTracingIntegration({ router: useRouter() }), // 路由追踪
       Sentry.replayIntegration(),
-      Sentry.feedbackIntegration({
-        colorScheme: 'system',
-      }),
+      // Sentry.feedbackIntegration({
+      //   colorScheme: 'system',
+      // }),
 
       // send console.log, console.warn, and console.error calls as logs to Sentry
       Sentry.consoleLoggingIntegration({ levels: ['log', 'warn', 'error'] }),

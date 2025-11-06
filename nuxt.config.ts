@@ -2,7 +2,6 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: {
-    // enabled: process.env.NODE_ENV !== 'production',
     enabled: false,
   },
   modules: ['@vueuse/nuxt', '@nuxt/ui', 'nuxt-monaco-editor', '@sentry/nuxt/module'],
@@ -12,7 +11,7 @@ export default defineNuxtConfig({
       umamiWebsiteID: '',
       aggridLicense: '',
       sentry: {
-        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
+        dsn: process.env.SENTRY_DSN,
       },
     },
     debugMpRequest: false,
@@ -85,8 +84,8 @@ export default defineNuxtConfig({
     },
   },
   sentry: {
-    org: 'wechat-article',
-    project: 'wechat-article-exporter',
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
     authToken: process.env.SENTRY_AUTH_TOKEN,
   },
 });
