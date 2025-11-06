@@ -9,7 +9,10 @@ export interface CookieKVValue {
 
 export async function setMpCookie(key: CookieKVKey, data: CookieKVValue): Promise<boolean> {
   const kv = useStorage('kv');
-  await kv.set<CookieKVValue>(`cookie:${key}`, data);
+  await kv.set<CookieKVValue>(`cookie:${key}`, data, {
+    // https://developers.cloudflare.com/kv/api/write-key-value-pairs/#expiring-keys
+    expirationTtl: 60 * 60 * 24 * 4, // 4 days
+  });
   return true;
 }
 
