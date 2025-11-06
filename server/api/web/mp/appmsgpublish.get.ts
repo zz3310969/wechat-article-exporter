@@ -3,20 +3,21 @@
  */
 
 import { proxyMpRequest } from '~/server/utils/proxy-request';
+import { getTokenFromStore } from '~/server/utils/CookieStore';
 
 interface AppMsgPublishQuery {
   begin?: number;
   size?: number;
   id: string;
   keyword: string;
-  token: string;
 }
 
 export default defineEventHandler(async event => {
+  const token = await getTokenFromStore(event);
+
   const query = getQuery<AppMsgPublishQuery>(event);
   const id = query.id;
   const keyword = query.keyword;
-  const token = query.token;
   const begin: number = query.begin || 0;
   const size: number = query.size || 5;
 
@@ -32,7 +33,7 @@ export default defineEventHandler(async event => {
     type: '101_1',
     free_publish_type: 1,
     sub_action: 'list_ex',
-    token: token,
+    token: token!,
     lang: 'zh_CN',
     f: 'json',
     ajax: 1,

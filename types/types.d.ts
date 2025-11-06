@@ -1,16 +1,8 @@
 export interface LoginAccount {
-  uuid: string;
-  token: string;
   nickname: string;
   avatar: string;
-  fakeid: string;
   expires: string;
   err?: string;
-}
-
-export interface LoginInfoResult {
-  nick_name: string;
-  head_img: string;
 }
 
 export interface BaseResp {

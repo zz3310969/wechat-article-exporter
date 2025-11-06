@@ -1,7 +1,7 @@
-import { getAuthKey } from '~/server/utils/proxy-request';
+import { getAuthKeyFromRequest } from '~/server/utils/proxy-request';
 
 export default defineEventHandler(async event => {
-  const authKey = getAuthKey(event);
+  const authKey = getAuthKeyFromRequest(event);
 
   if (authKey) {
     return {

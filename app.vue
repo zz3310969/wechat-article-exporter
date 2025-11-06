@@ -32,8 +32,6 @@ useHead({
       : '',
   ],
 });
-
-console.log('this is a normal log message');
 </script>
 
 <style>

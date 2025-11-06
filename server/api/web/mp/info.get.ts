@@ -6,13 +6,10 @@
  */
 
 import { proxyMpRequest } from '~/server/utils/proxy-request';
-
-interface GetInfoQuery {
-  token: string;
-}
+import { getTokenFromStore } from '~/server/utils/CookieStore';
 
 export default defineEventHandler(async event => {
-  const query = getQuery<GetInfoQuery>(event);
+  const token = await getTokenFromStore(event);
 
   const html: string = await proxyMpRequest({
     event: event,
@@ -20,7 +17,7 @@ export default defineEventHandler(async event => {
     endpoint: 'https://mp.weixin.qq.com/cgi-bin/home',
     query: {
       t: 'home/index',
-      token: query.token,
+      token: token!,
       lang: 'zh_CN',
     },
   }).then(resp => resp.text());

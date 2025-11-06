@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === 'production' && dsn) {
     // We recommend adjusting this value in production
     // Learn more at
     // https://docs.sentry.io/platforms/javascript/configuration/options/#traces-sample-rate
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.5,
 
     // Capture Replay for 10% of all sessions,
     // plus for 100% of sessions with an error

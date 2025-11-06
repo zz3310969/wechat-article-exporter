@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { H3Event, parseCookies } from 'h3';
 
 /**
- * 转发微信公众号请求
+ * 代理微信公众号请求
  * @description 备注：只有登录请求(`action=login`)中的 `set-cookie` 才会被写入到 CookieStore 中
  * @param options 请求参数
  */
@@ -21,7 +21,7 @@ export async function proxyMpRequest(options: RequestOptions) {
   });
 
   // 优先读取参数中的 cookie，若无则从 CookieStore 中读取
-  const cookie: string | null = options.cookie || getCookieFromStore(options.event);
+  const cookie: string | null = options.cookie || (await getCookieFromStore(options.event));
   if (cookie) {
     headers.set('Cookie', cookie);
   }
@@ -36,10 +36,8 @@ export async function proxyMpRequest(options: RequestOptions) {
   if (options.query) {
     options.endpoint += '?' + new URLSearchParams(options.query as Record<string, string>).toString();
   }
-  let requestBody = '';
   if (options.method === 'POST' && options.body) {
-    requestBody = new URLSearchParams(options.body as Record<string, string>).toString();
-    requestInit.body = requestBody;
+    requestInit.body = new URLSearchParams(options.body as Record<string, string>).toString();
   }
 
   // 构造请求
@@ -52,56 +50,68 @@ export async function proxyMpRequest(options: RequestOptions) {
   }
 
   // 转发请求
-  const response = await fetch(request);
-  // 更新 CookieStore 中的 cookie
-  updateCookies(options.event, response.headers.getSetCookie());
+  const mpResponse = await fetch(request);
 
   // 记录响应报文
   if (runtimeConfig.debugMpRequest && isDev) {
-    await logResponse(requestId, response.clone());
+    await logResponse(requestId, mpResponse.clone());
   }
 
   let setCookies: string[] = [];
 
   // 处理登录请求的 uuid cookie
   if (options.action === 'start_login') {
-    // 提取出 uuid 这个 cookie
-    setCookies = response.headers.getSetCookie().filter(cookie => cookie.startsWith('uuid='));
+    // 提取出 uuid 这个 cookie，并透传给客户端
+    setCookies = mpResponse.headers.getSetCookie().filter(cookie => cookie.startsWith('uuid='));
   }
 
   // 处理登录成功请求的 cookie
   // 只有登录请求才会将 Cookie 数据写入 CookieStore
   // 返回给客户端的一个 auth-key 的 cookie
-  if (options.action === 'login') {
-    const authKey = crypto.randomUUID().replace(/-/g, '');
-    cookieStore.setCookie(authKey, response.headers.getSetCookie());
+  else if (options.action === 'login') {
+    // 提取出 token 和 cookies
+    try {
+      const authKey = crypto.randomUUID().replace(/-/g, '');
 
-    setCookies = [
-      `auth-key=${authKey}; Path=/; Expires=${dayjs().add(4, 'days').toString()}; Secure; HttpOnly`,
+      const { redirect_url } = await mpResponse.clone().json();
+      const token = new URL(`http://localhost${redirect_url}`).searchParams.get('token')!;
+      await cookieStore.setCookie(authKey, token, mpResponse.headers.getSetCookie());
 
-      // 登录成功后，删除浏览器的 uuid cookie
-      `uuid=EXPIRED; Path=/; Expires=${dayjs().subtract(1, 'days').toString()}; Secure; HttpOnly`,
-    ];
+      setCookies = [
+        `auth-key=${authKey}; Path=/; Expires=${dayjs().add(4, 'days').toString()}; Secure; HttpOnly`,
+
+        // 登录成功后，删除浏览器的 uuid cookie
+        `uuid=EXPIRED; Path=/; Expires=${dayjs().subtract(1, 'days').toString()}; Secure; HttpOnly`,
+      ];
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   // 处理切换公众号的请求
-  if (options.action === 'switch_account') {
-    const authKey = getAuthKey(options.event);
+  else if (options.action === 'switch_account') {
+    const authKey = getAuthKeyFromRequest(options.event);
     if (authKey) {
       setCookies = ['switch_account=1'];
     }
   }
 
+  // 这里是否需要执行？
+  // 更新 CookieStore 中的 cookie
+  else {
+    // updateCookies(options.event, mpResponse.headers.getSetCookie());
+  }
+
   // 构造返回给客户端的响应
-  const responseHeaders = new Headers(response.headers);
+  const responseHeaders = new Headers(mpResponse.headers);
   responseHeaders.delete('set-cookie');
   setCookies.forEach(setCookie => {
     responseHeaders.append('set-cookie', setCookie);
   });
 
-  const finalResponse = new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
+  const finalResponse = new Response(mpResponse.body, {
+    status: mpResponse.status,
+    statusText: mpResponse.statusText,
     headers: responseHeaders,
   });
 
@@ -112,7 +122,7 @@ export async function proxyMpRequest(options: RequestOptions) {
   }
 }
 
-export function getAuthKey(event: H3Event): string {
+export function getAuthKeyFromRequest(event: H3Event): string {
   let authKey = getRequestHeader(event, 'X-Auth-Key');
   if (!authKey) {
     const cookies = parseCookies(event);
@@ -122,9 +132,9 @@ export function getAuthKey(event: H3Event): string {
   return authKey;
 }
 
-function updateCookies(event: H3Event, cookies: string[]): void {
-  const authKey = getAuthKey(event);
-  if (authKey) {
-    cookieStore.updateCookie(authKey, cookies);
-  }
-}
+// function updateCookies(event: H3Event, cookies: string[]): void {
+//   const authKey = getAuthKeyFromRequest(event);
+//   if (authKey) {
+//     cookieStore.updateCookie(authKey, cookies);
+//   }
+// }

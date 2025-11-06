@@ -17,21 +17,14 @@ const loginAccount = useLoginAccount();
 /**
  * 获取文章列表
  * @param account
- * @param token
  * @param begin
  * @param keyword
  */
-export async function getArticleList(
-  account: Info,
-  token: string,
-  begin = 0,
-  keyword = ''
-): Promise<[AppMsgEx[], boolean, number]> {
+export async function getArticleList(account: Info, begin = 0, keyword = ''): Promise<[AppMsgEx[], boolean, number]> {
   const resp = await $fetch<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
     method: 'GET',
     query: {
       id: account.fakeid,
-      token: token,
       begin: begin,
       size: ARTICLE_LIST_PAGE_SIZE,
       keyword: keyword,
@@ -89,18 +82,16 @@ export async function getArticleList(
 
 /**
  * 获取公众号列表
- * @param token
  * @param begin
  * @param keyword
  */
-export async function getAccountList(token: string, begin = 0, keyword = ''): Promise<[AccountInfo[], boolean]> {
+export async function getAccountList(begin = 0, keyword = ''): Promise<[AccountInfo[], boolean]> {
   const resp = await $fetch<SearchBizResponse>('/api/web/mp/searchbiz', {
     method: 'GET',
     query: {
-      keyword: keyword,
       begin: begin,
       size: ACCOUNT_LIST_PAGE_SIZE,
-      token: token,
+      keyword: keyword,
     },
     retry: 0,
   });

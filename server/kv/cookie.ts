@@ -1,12 +1,19 @@
 import { type CookieEntity } from '~/server/utils/CookieStore';
 
-export async function setMpCookie(data: Record<string, CookieEntity[]>): Promise<boolean> {
+export type CookieKVKey = string;
+
+export interface CookieKVValue {
+  token: string;
+  cookies: CookieEntity[];
+}
+
+export async function setMpCookie(key: CookieKVKey, data: CookieKVValue): Promise<boolean> {
   const kv = useStorage('kv');
-  await kv.set<Record<string, CookieEntity[]>>('cookies.json', data);
+  await kv.set<CookieKVValue>(`cookie:${key}`, data);
   return true;
 }
 
-export async function getMpCookie(): Promise<Record<string, CookieEntity[]> | null> {
+export async function getMpCookie(key: CookieKVKey): Promise<CookieKVValue | null> {
   const kv = useStorage('kv');
-  return await kv.get<Record<string, CookieEntity[]>>('cookies.json');
+  return await kv.get<CookieKVValue>(`cookie:${key}`);
 }

@@ -9,7 +9,7 @@ interface AppMsgPublishQuery {
 }
 
 export default defineEventHandler(async event => {
-  const token = getTokenFromStore(event);
+  const token = await getTokenFromStore(event);
 
   if (!token) {
     return {

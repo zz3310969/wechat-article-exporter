@@ -1,31 +1,46 @@
 import { H3Event, parseCookies } from 'h3';
-import { getMpCookie, setMpCookie } from '~/server/kv/cookie';
-import { getMpToken, setMpToken } from '~/server/kv/token';
+import { CookieKVValue, getMpCookie, setMpCookie } from '~/server/kv/cookie';
 
 // 表示一条 set-cookie 记录的解析结果
 export type CookieEntity = Record<string, string | number>;
 
 // 公众号所有的 set-cookie 解析结果
 export class AccountCookie {
-  private readonly _cookie: CookieEntity[];
+  private readonly _token: string;
+  private _cookie: CookieEntity[];
 
   /**
+   * @param token
    * @param cookies response.headers.getSetCookie() 的结果，是一个字符串数组
    */
-  constructor(cookies: string[]) {
-    this._cookie = this.parse(cookies);
+  constructor(token: string, cookies: string[]) {
+    this._token = token;
+    this._cookie = AccountCookie.parse(cookies);
+  }
+
+  static create(token: string, cookies: CookieEntity[]): AccountCookie {
+    const value = new AccountCookie(token, []);
+    value._cookie = cookies;
+    return value;
   }
 
   public toString(): string {
     return this.stringify(this._cookie);
   }
 
-  public toJSON(): CookieEntity[] {
-    return this._cookie;
+  public toJSON(): CookieKVValue {
+    return {
+      token: this._token,
+      cookies: this._cookie,
+    };
   }
 
   public get(name: string): CookieEntity | undefined {
     return this._cookie.find(cookie => cookie.name === name);
+  }
+
+  public get token() {
+    return this._token;
   }
 
   // 根据 cookie 中的 expires 来确定是否已过期
@@ -34,7 +49,7 @@ export class AccountCookie {
     return false;
   }
 
-  private parse(cookies: string[]): CookieEntity[] {
+  public static parse(cookies: string[]): CookieEntity[] {
     // key 为 cookie 的 name
     const cookieMap = new Map<string, CookieEntity>();
 
@@ -93,196 +108,79 @@ export class AccountCookie {
 
 // 所有用户的 cookie 仓库
 class CookieStore {
-  store!: Map<string, AccountCookie>;
-  token!: Map<string, string>;
+  // key 为 authKey, value 为 AccountCookie 实例
+  store: Map<string, AccountCookie> = new Map<string, AccountCookie>();
+
+  async getAccountCookie(authKey: string): Promise<AccountCookie | null> {
+    // 优先从本地内存取
+    let cachedAccountCookie = this.store.get(authKey);
+
+    // 如果内存没有，则从 kv 数据库取
+    if (!cachedAccountCookie) {
+      const cookieValue = await getMpCookie(authKey);
+      if (!cookieValue) {
+        return null;
+      }
+
+      cachedAccountCookie = AccountCookie.create(cookieValue.token, cookieValue.cookies);
+      this.store.set(authKey, cachedAccountCookie);
+    }
+
+    return cachedAccountCookie;
+  }
 
   /**
    * 检索用户的cookie
    * @param authKey
    * @return 适合作为请求头的Cookie字符串
    */
-  getCookie(authKey: string): string | null {
-    const cookieObj = this.store.get(authKey);
-    if (cookieObj) {
-      return cookieObj.toString();
+  async getCookie(authKey: string): Promise<string | null> {
+    const accountCookie = await this.getAccountCookie(authKey);
+    if (!accountCookie) {
+      return null;
     }
-    return null;
+    return accountCookie.toString();
   }
 
   /**
    * 存储用户的cookie
    * @param authKey
+   * @param token
    * @param cookie 原始的 set-cookie 字符串数组
    */
-  setCookie(authKey: string, cookie: string[]) {
-    this.store.set(authKey, new AccountCookie(cookie));
-    this.dumpCookies().catch(e => console.error(e));
-  }
-
-  /**
-   * 更新用户的cookie，保留旧cookie并更新新cookie
-   * @param authKey
-   * @param newCookies 新的 set-cookie 字符串数组
-   */
-  updateCookie(authKey: string, newCookies: string[]) {
-    // Parse new cookies
-    const newAccountCookie = new AccountCookie(newCookies);
-    const newCookieMap = new Map<string, CookieEntity>(
-      newAccountCookie.toJSON().map(cookie => [cookie.name as string, cookie])
-    );
-
-    // Get existing cookies, if any
-    const existingCookieObj = this.store.get(authKey);
-    let mergedCookies: CookieEntity[];
-
-    if (existingCookieObj) {
-      // Merge existing cookies with new ones, new cookies override duplicates
-      const existingCookies = existingCookieObj.toJSON();
-      const existingCookieMap = new Map<string, CookieEntity>(
-        existingCookies.map(cookie => [cookie.name as string, cookie])
-      );
-
-      // Keep all existing cookies, overwrite with new ones if they exist
-      mergedCookies = Array.from(existingCookieMap.entries()).reduce<CookieEntity[]>((acc, [name, cookie]) => {
-        if (newCookieMap.has(name)) {
-          // Use new cookie if it exists
-          acc.push(newCookieMap.get(name)!);
-          newCookieMap.delete(name); // Remove used new cookie
-        } else {
-          // Keep existing cookie
-          acc.push(cookie);
-        }
-        return acc;
-      }, []);
-
-      // Add any remaining new cookies that weren't duplicates
-      mergedCookies.push(...Array.from(newCookieMap.values()));
-    } else {
-      // No existing cookies, use new cookies as is
-      mergedCookies = newAccountCookie.toJSON();
-    }
-
-    // Convert merged cookies back to string array for AccountCookie constructor
-    const mergedCookieStrings = mergedCookies.map(cookie => {
-      const parts = [`${cookie.name}=${cookie.value}`];
-      for (const [key, value] of Object.entries(cookie)) {
-        if (key !== 'name' && key !== 'value' && key !== 'expires_timestamp') {
-          parts.push(value === 'true' ? key : `${key}=${value}`);
-        }
-      }
-      return parts.join('; ');
-    });
-
-    // Update store with merged cookies
-    this.store.set(authKey, new AccountCookie(mergedCookieStrings));
-    this.dumpCookies().catch(e => console.error(e));
+  async setCookie(authKey: string, token: string, cookie: string[]) {
+    const accountCookie = new AccountCookie(token, cookie);
+    this.store.set(authKey, accountCookie);
+    await setMpCookie(authKey, accountCookie.toJSON());
   }
 
   /**
    * 检索用户的 token
    * @param authKey
    */
-  getToken(authKey: string): string | null {
-    return this.token.get(authKey) || null;
-  }
+  async getToken(authKey: string): Promise<string | null> {
+    const accountCookie = await this.getAccountCookie(authKey);
+    if (!accountCookie) {
+      return null;
+    }
 
-  /**
-   * 绑定 token
-   * @param authKey
-   * @param token
-   */
-  bindToken(authKey: string, token: string) {
-    this.token.set(authKey, token);
-    this.dumpTokens().catch(e => console.error(e));
+    return accountCookie.token;
   }
 
   /**
    * 转换为 json 格式，方便存储与传输
    * 返回一个对象，键为 uuid，值为解析后的 cookie 对象
    */
-  toJSON(): Record<string, CookieEntity[]> {
-    const json: Record<string, CookieEntity[]> = {};
-    for (const [authKey, cookieObj] of this.store) {
-      json[authKey] = cookieObj.toJSON();
+  toJSON(): Record<string, AccountCookie> {
+    const json: Record<string, AccountCookie> = {};
+    for (const [authKey, accountCookie] of this.store) {
+      json[authKey] = accountCookie;
     }
     return json;
-  }
-
-  // 从文件中加载
-  async load() {
-    await Promise.all([this.loadCookies(), this.loadTokens()]);
-  }
-
-  async loadCookies() {
-    this.store = new Map<string, AccountCookie>();
-
-    try {
-      const data = await getMpCookie();
-      if (!data) {
-        return;
-      }
-
-      for (const [authKey, cookies] of Object.entries(data)) {
-        // Reconstruct cookie strings from parsed objects
-        const cookieStrings = cookies.map(cookie => {
-          const parts = [`${cookie.name}=${cookie.value}`];
-          for (const [key, value] of Object.entries(cookie)) {
-            if (key !== 'name' && key !== 'value' && key !== 'expires_timestamp') {
-              parts.push(value === 'true' ? key : `${key}=${value}`);
-            }
-          }
-          return parts.join('; ');
-        });
-        this.store.set(authKey, new AccountCookie(cookieStrings));
-      }
-    } catch (error) {
-      console.error('Failed to load cookie store:', error);
-    }
-  }
-
-  async loadTokens() {
-    this.token = new Map<string, string>();
-
-    try {
-      const data = await getMpToken();
-      if (!data) {
-        return;
-      }
-
-      for (const [authKey, token] of Object.entries(data)) {
-        this.token.set(authKey, token);
-      }
-    } catch (error) {
-      console.error('Failed to load token store:', error);
-    }
-  }
-
-  async dumpCookies() {
-    try {
-      await setMpCookie(this.toJSON());
-    } catch (error) {
-      console.error('Failed to save cookie store:', error);
-    }
-  }
-
-  async dumpTokens() {
-    try {
-      await setMpToken(Object.fromEntries(this.token));
-    } catch (error) {
-      console.error('Failed to save token store:', error);
-    }
   }
 }
 
 export const cookieStore = new CookieStore();
-cookieStore
-  .load()
-  .then(() => {
-    console.log('cookie store load success.');
-  })
-  .catch(e => {
-    console.error('cookie store load failed.', e);
-  });
 
 /**
  * 从 CookieStore 中获取 cookie 字符串
@@ -290,13 +188,13 @@ cookieStore
  * @description 根据请求中的 X-Auth-Key header 或者 auth-key cookie，从 CookieStore 中检索用户登录信息的 cookie，这些 cookie 会透传给微信
  * @param event
  */
-export function getCookieFromStore(event: H3Event): string | null {
+export async function getCookieFromStore(event: H3Event): Promise<string | null> {
   let cookie: string | null = null;
 
   // 优先根据自定义的 X-Auth-Key 检索
   let authKey = getRequestHeader(event, 'X-Auth-Key');
   if (authKey) {
-    cookie = cookieStore.getCookie(authKey);
+    cookie = await cookieStore.getCookie(authKey);
     if (cookie) {
       return cookie;
     }
@@ -306,9 +204,40 @@ export function getCookieFromStore(event: H3Event): string | null {
   const cookies = parseCookies(event);
   authKey = cookies['auth-key'];
   if (authKey) {
-    cookie = cookieStore.getCookie(authKey);
+    cookie = await cookieStore.getCookie(authKey);
     if (cookie) {
       return cookie;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 从 CookieStore 中获取公众号的 token
+ *
+ * @description 根据请求中的 X-Auth-Key header 或者 auth-key cookie，从 CookieStore 中检索用户登录时绑定的 token
+ * @param event
+ */
+export async function getTokenFromStore(event: H3Event): Promise<string | null> {
+  let token: string | null = null;
+
+  // 优先根据自定义的 X-Auth-Key 检索
+  let authKey = getRequestHeader(event, 'X-Auth-Key');
+  if (authKey) {
+    token = await cookieStore.getToken(authKey);
+    if (token) {
+      return token;
+    }
+  }
+
+  // 从 cookie 中的 token 检索
+  const cookies = parseCookies(event);
+  authKey = cookies['auth-key'];
+  if (authKey) {
+    token = await cookieStore.getToken(authKey);
+    if (token) {
+      return token;
     }
   }
 
@@ -321,7 +250,7 @@ export function getCookieFromStore(event: H3Event): string | null {
  * @description 用于登录过程中 uuid cookie 透传给微信
  * @param event
  */
-export function getCookieFromRequest(event: H3Event): string {
+export function getCookiesFromRequest(event: H3Event): string {
   const cookies = parseCookies(event);
   return Object.keys(cookies)
     .map(key => `${key}=${cookies[key]}`)
@@ -329,32 +258,15 @@ export function getCookieFromRequest(event: H3Event): string {
 }
 
 /**
- * 从 CookieStore 中获取公众号的 token
- *
- * @description 根据请求中的 X-Auth-Key header 或者 auth-key cookie，从 CookieStore 中检索用户登录时绑定的 token
- * @param event
+ * 从 response 中获取指定的 set-cookie 的 value 部分
+ * @param name cookie 名
+ * @param response
  */
-export function getTokenFromStore(event: H3Event): string | null {
-  let token: string | null = null;
-
-  // 优先根据自定义的 X-Auth-Key 检索
-  let authKey = getRequestHeader(event, 'X-Auth-Key');
-  if (authKey) {
-    token = cookieStore.getToken(authKey);
-    if (token) {
-      return token;
-    }
+export function getCookieFromResponse(name: string, response: Response): string | null {
+  const cookies = AccountCookie.parse(response.headers.getSetCookie());
+  const targetCookie = cookies.find(cookie => cookie.name === name);
+  if (targetCookie) {
+    return targetCookie.value as string;
   }
-
-  // 从 cookie 中的 token 检索
-  const cookies = parseCookies(event);
-  authKey = cookies['auth-key'];
-  if (authKey) {
-    token = cookieStore.getToken(authKey);
-    if (token) {
-      return token;
-    }
-  }
-
   return null;
 }

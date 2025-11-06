@@ -53,7 +53,6 @@ import { getAccountList } from '~/apis';
 import type { AccountInfo } from '~/types/types';
 import LoginModal from '~/components/modal/Login.vue';
 
-const loginAccount = useLoginAccount();
 const activeAccount = useActiveAccount();
 
 const toast = useToast();
@@ -90,7 +89,7 @@ async function loadData() {
   loading.value = true;
 
   try {
-    const [accounts, completed] = await getAccountList(loginAccount.value?.token, begin, accountQuery.value);
+    const [accounts, completed] = await getAccountList(begin, accountQuery.value);
     accountList.push(...accounts);
     begin += ACCOUNT_LIST_PAGE_SIZE;
     noMoreData.value = completed;

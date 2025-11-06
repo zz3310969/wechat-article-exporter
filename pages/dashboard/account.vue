@@ -108,7 +108,7 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
   syncingRowId.value = account.fakeid;
   isSyncing.value = true;
 
-  const [articles, completed] = await getArticleList(account, loginAccount.value?.token, begin);
+  const [articles, completed] = await getArticleList(account, begin);
   if (isCanceled.value) {
     isCanceled.value = false;
     promise.reject(new Error('已取消'));

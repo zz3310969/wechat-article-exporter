@@ -78,9 +78,7 @@ const logoutBtnLoading = ref(false);
 
 async function logout() {
   logoutBtnLoading.value = true;
-  const { statusCode, statusText } = await $fetch<LogoutResponse>(
-    '/api/web/mp/logout?token=' + loginAccount.value.token
-  );
+  const { statusCode, statusText } = await $fetch<LogoutResponse>('/api/web/mp/logout');
   if (statusCode === 200) {
     loginAccount.value = null;
   } else {

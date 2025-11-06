@@ -3,13 +3,10 @@
  */
 
 import { proxyMpRequest } from '~/server/utils/proxy-request';
-
-interface LogoutQuery {
-  token: string;
-}
+import { getTokenFromStore } from '~/server/utils/CookieStore';
 
 export default defineEventHandler(async event => {
-  const query = getQuery<LogoutQuery>(event);
+  const token = await getTokenFromStore(event);
 
   const response: Response = await proxyMpRequest({
     event: event,
@@ -17,7 +14,7 @@ export default defineEventHandler(async event => {
     endpoint: 'https://mp.weixin.qq.com/cgi-bin/logout',
     query: {
       t: 'wxm-logout',
-      token: query.token,
+      token: token!,
       lang: 'zh_CN',
     },
   });
