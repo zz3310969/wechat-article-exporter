@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./dockerfile  # 你的 Dockerfile 路径
+          file: ./Dockerfile  # 你的 Dockerfile 路径
           push: true  # 直接推送
           platforms: linux/amd64,linux/arm64  # 目标架构
           tags: |
