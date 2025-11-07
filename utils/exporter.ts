@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import type { AppMsgEx } from '~/types/types';
 import type { ArticleMetadata } from '~/utils/download/types';
 import { formatTimeStamp, ITEM_SHOW_TYPE } from '~/utils';
+import type { AccountManifest } from '~/types/account';
 
 export type ExcelExportEntity = AppMsgEx &
   Partial<ArticleMetadata> & {
@@ -71,6 +72,12 @@ export async function export2ExcelFile(data: ExcelExportEntity[], filename: stri
 
 // 导出为 json 文件
 export async function export2JsonFile(data: ExcelExportEntity[], filename: string) {
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  saveAs(blob, `${filename}.json`);
+}
+
+// 导出公众号数据
+export async function exportAccountJsonFile(data: AccountManifest, filename: string) {
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   saveAs(blob, `${filename}.json`);
 }

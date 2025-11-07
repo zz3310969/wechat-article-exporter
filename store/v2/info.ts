@@ -87,3 +87,18 @@ export async function getAccountNameByFakeid(fakeid: string): Promise<string | n
 
   return account.nickname || null;
 }
+
+// 批量导入公众号
+export async function importInfos(infos: Info[]): Promise<void> {
+  for (const info of infos) {
+    // 导入时需要把相关数量置空
+    info.completed = false;
+    info.count = 0;
+    info.articles = 0;
+    info.total_count = 0;
+    info.create_time = undefined;
+    info.update_time = undefined;
+    info.last_update_time = undefined;
+    await updateInfoCache(info);
+  }
+}

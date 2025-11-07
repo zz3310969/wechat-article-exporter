@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === 'production' && dsn) {
       // }),
 
       // send console.log, console.warn, and console.error calls as logs to Sentry
-      Sentry.consoleLoggingIntegration({ levels: ['debug', 'log', 'warn', 'error'] }),
+      Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
     ],
 
     // Set tracesSampleRate to 1.0 to capture 100%

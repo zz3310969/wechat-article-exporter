@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Info } from '~/store/v2/info';
+import { importInfos, type Info } from '~/store/v2/info';
 import GlobalSearchAccount from '~/components/global/SearchAccount.vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import {
@@ -31,6 +31,8 @@ import type { Preferences } from '~/types/preferences';
 import dayjs from 'dayjs';
 import { IMAGE_PROXY, websiteName } from '~/config';
 import toastFactory from '~/composables/toast';
+import { exportAccountJsonFile } from '~/utils/exporter';
+import type { AccountManifest } from '~/types/account';
 
 useHead({
   title: `公众号管理 | ${websiteName}`,
@@ -517,6 +519,77 @@ function deleteSelectedAccounts() {
     },
   });
 }
+
+// 导入公众号
+const fileRef = ref<HTMLInputElement | null>(null);
+const importBtnLoading = ref(false);
+function importAccount() {
+  fileRef.value!.click();
+}
+async function handleFileChange(evt: Event) {
+  const files = (evt.target as HTMLInputElement).files;
+  if (files && files.length > 0) {
+    const file = files[0];
+
+    try {
+      importBtnLoading.value = true;
+
+      // 使用 FileReader 读取文件内容
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          if (typeof e.target?.result === 'string') {
+            resolve(e.target.result);
+          } else {
+            reject(new Error('读取文件失败'));
+          }
+        };
+        reader.onerror = () => reject(new Error('读取文件失败'));
+        reader.readAsText(file, 'UTF-8');
+      });
+
+      // 解析 JSON
+      const jsonData = JSON.parse(fileContent);
+      if (jsonData.usefor !== 'wechat-article-exporter') {
+        // 文件格式不正确
+        toast.error('导入公众号失败', '导入文件格式不正确，请选择该网站导出的文件进行导入。');
+        return;
+      }
+      const infos = jsonData.accounts;
+      if (!infos || infos.length <= 0) {
+        // 文件格式不正确
+        toast.error('导入公众号失败', '导入文件格式不正确，请选择该网站导出的文件进行导入。');
+        return;
+      }
+
+      await importInfos(infos);
+      await refresh();
+    } catch (error) {
+      console.error('导入公众号时 JSON 解析失败:', error);
+      toast.error('导入公众号', (error as Error).message);
+    } finally {
+      importBtnLoading.value = false;
+    }
+  }
+}
+
+// 导出公众号
+const exportBtnLoading = ref(false);
+function exportAccount() {
+  exportBtnLoading.value = true;
+  try {
+    const rows = getSelectedRows();
+    const data: AccountManifest = {
+      version: '1.0',
+      usefor: 'wechat-article-exporter',
+      accounts: rows,
+    };
+    exportAccountJsonFile(data, '公众号');
+    toast.success('导出公众号', `成功导出了 ${rows.length} 个公众号`);
+  } finally {
+    exportBtnLoading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -528,9 +601,22 @@ function deleteSelectedAccounts() {
     <div class="flex flex-col h-full divide-y divide-gray-200">
       <!-- 顶部操作区 -->
       <header class="flex items-center gap-3 px-3 py-3">
-        <UButton icon="i-lucide:user-plus" color="blue" :disabled="isDeleting || addBtnLoading" @click="addAccount">{{
-          addBtnLoading ? '添加中...' : '添加公众号'
-        }}</UButton>
+        <UButton icon="i-lucide:user-plus" color="blue" :disabled="isDeleting || addBtnLoading" @click="addAccount">
+          {{ addBtnLoading ? '添加中...' : '添加' }}
+        </UButton>
+        <UButton icon="i-lucide:arrow-down-to-line" color="blue" :loading="importBtnLoading" @click="importAccount">
+          批量导入
+          <input ref="fileRef" type="file" accept=".json" class="hidden" @change="handleFileChange" />
+        </UButton>
+        <UButton
+          icon="i-lucide:arrow-up-from-line"
+          color="blue"
+          :loading="exportBtnLoading"
+          :disabled="!hasSelectedRows"
+          @click="exportAccount"
+        >
+          批量导出
+        </UButton>
         <UButton
           color="rose"
           icon="i-lucide:user-minus"
@@ -538,7 +624,7 @@ function deleteSelectedAccounts() {
           :loading="isDeleting"
           :disabled="!hasSelectedRows"
           @click="deleteSelectedAccounts"
-          >删除所选公众号</UButton
+          >删除</UButton
         >
         <UButton
           color="black"
@@ -547,7 +633,7 @@ function deleteSelectedAccounts() {
           :loading="isSyncing"
           :disabled="isDeleting || !hasSelectedRows"
           @click="loadSelectedAccountArticle"
-          >同步所选公众号</UButton
+          >同步</UButton
         >
       </header>
 
