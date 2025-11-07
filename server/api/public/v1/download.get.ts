@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom';
+import { Window } from 'happy-dom';
 import TurndownService from 'turndown';
 import { getTokenFromStore } from '~/server/utils/CookieStore';
 import { USER_AGENT } from '~/config';
@@ -64,7 +64,10 @@ export default defineEventHandler(async event => {
 });
 
 function normalizeHtml(rawHTML: string): string {
-  const document = new JSDOM(rawHTML).window.document;
+  const window = new Window({ url: 'https://localhost:8080' });
+  const document = window.document;
+
+  document.body.innerHTML = rawHTML;
 
   const $jsArticleContent = document.querySelector('#js_article')!;
 
@@ -82,7 +85,7 @@ function normalizeHtml(rawHTML: string): string {
   $jsArticleContent.querySelector('#wx_stream_article_slide_tip')?.remove();
 
   // 处理图片懒加载
-  const imgs = document.querySelectorAll<HTMLImageElement>('img');
+  const imgs = document.querySelectorAll('img');
   for (const img of imgs) {
     const imgUrl = img.getAttribute('src') || img.getAttribute('data-src');
     if (imgUrl) {
