@@ -34,9 +34,6 @@ export class Downloader extends BaseDownload {
       throw new Error('下载任务正在运行中，无需重复启动');
     }
     this.downloadType = type;
-    if (['metadata', 'comments'].includes(this.downloadType)) {
-      // this.validateCredential();
-    }
 
     this.isProcessing = true;
     const start = Date.now();
@@ -124,14 +121,20 @@ export class Downloader extends BaseDownload {
       }
     }
 
+    const article = await getArticleByLink(url);
+    if (!article) {
+      this.pending.delete(url);
+      this.failed.add(url);
+      return;
+    }
+
     for (let attempt = 0; attempt < this.options.maxRetries; attempt++) {
       const proxy = this.proxyManager.getBestProxy();
 
       try {
-        const blob = await this.download(url, proxy, false);
+        const blob = await this.download(article.fakeid, url, proxy, false);
         const html = await blob.text();
         const [status, commentID] = this.validateHTMLContent(html);
-        const article = await getArticleByLink(url);
         if (status === 'Success') {
           // 下载成功
           await updateHtmlCache({
@@ -202,16 +205,29 @@ export class Downloader extends BaseDownload {
   private async downloadMetadataTask(url: string): Promise<void> {
     this.pending.add(url);
 
-    // 阅读量数据不进行缓存
+    const article = await getArticleByLink(url);
+    if (!article) {
+      this.pending.delete(url);
+      this.failed.add(url);
+      return;
+    }
+
+    // 检查 credentials
+    try {
+      this.validateCredential(article.fakeid);
+    } catch (error) {
+      this.pending.delete(url);
+      this.failed.add(url);
+      throw error;
+    }
 
     for (let attempt = 0; attempt < this.options.maxRetries; attempt++) {
       const proxy = this.proxyManager.getBestProxy();
 
       try {
-        const blob = await this.download(url, proxy, true);
+        const blob = await this.download(article.fakeid, url, proxy, true);
         const html = await blob.text();
         const [status, commentID] = this.validateHTMLContent(html);
-        const article = await getArticleByLink(url);
         if (status === 'Success') {
           // 下载成功
           await this.processHtmlMetadata(blob, url);
@@ -285,10 +301,27 @@ export class Downloader extends BaseDownload {
     this.pending.add(url);
 
     const article = await getArticleByLink(url);
+    if (!article) {
+      this.pending.delete(url);
+      this.failed.add(url);
+      return;
+    }
+
+    // 检查 credentials
+    try {
+      this.validateCredential(article.fakeid);
+    } catch (error) {
+      this.pending.delete(url);
+      this.failed.add(url);
+      throw error;
+    }
+
     // 留言数据不进行缓存
     const cached = await getHtmlCache(url);
     if (!cached) {
       // 文章还未下载，不能下载留言
+      this.pending.delete(url);
+      this.failed.add(url);
       return;
     }
     const title = cached.title;
@@ -303,7 +336,7 @@ export class Downloader extends BaseDownload {
         const proxy = this.proxyManager.getBestProxy();
 
         try {
-          const response = await this.fetchComments(cached.fakeid, cached.commentID!, buffer, proxy);
+          const response = await this.fetchComments(article.fakeid, cached.commentID!, buffer, proxy);
           this.proxyManager.recordSuccess(proxy);
 
           if (response.base_resp.ret === 0) {
@@ -345,7 +378,7 @@ export class Downloader extends BaseDownload {
 
         try {
           const response = await this.fetchCommentReply(
-            cached.fakeid,
+            article.fakeid,
             cached.commentID!,
             comment.content_id,
             comment.reply_new.max_reply_id,

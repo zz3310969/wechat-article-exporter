@@ -6,7 +6,6 @@ import { sleep, timeout, bestConcurrencyCount } from '~/utils';
 import usePreferences from '~/composables/usePreferences';
 import { PUBLIC_PROXY_LIST } from '~/config';
 import { DEFAULT_OPTIONS } from './constants';
-import { getArticleByLink } from '~/store/v2/article';
 
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
@@ -135,21 +134,16 @@ export class BaseDownload {
   }
 
   // 下载
-  protected async download(url: string, proxy: string, withCredential = false): Promise<Blob> {
+  protected async download(fakeid: string, url: string, proxy: string, withCredential = false): Promise<Blob> {
     const abortController = new AbortController();
     this.abortControllers.set(url, abortController);
-
-    const article = await getArticleByLink(url);
-    if (!article) {
-      throw new Error(`${url} cached not found`);
-    }
 
     try {
       const headers: Record<string, string> = {};
 
       // 使用设置的 credentials 来抓取元数据
       if (withCredential) {
-        const targetCredential = credentials.value.find(item => item.biz === article.fakeid && item.valid);
+        const targetCredential = credentials.value.find(item => item.biz === fakeid && item.valid);
         if (targetCredential) {
           headers.cookie = `pass_ticket=${targetCredential.pass_ticket};wap_sid2=${targetCredential.wap_sid2}`;
         }
@@ -191,12 +185,12 @@ export class BaseDownload {
   }
 
   // 当获取阅读量和留言数据时，需要验证 Credential 是否设置正确
-  // protected validateCredential() {
-  //   const targetCredential = credentials.value.find(item => item.biz === this.fakeid && item.valid);
-  //   if (!targetCredential) {
-  //     throw new Error('目标公众号的 Credential 未设置');
-  //   }
-  // }
+  protected validateCredential(fakeid: string): void {
+    const targetCredential = credentials.value.find(item => item.biz === fakeid && item.valid);
+    if (!targetCredential) {
+      throw new Error('目标公众号的 Credential 未设置');
+    }
+  }
 
   // 验证文章 html 内容是否下载完整
   protected validateHTMLContent(html: string): ['Success' | 'Failure' | 'Deleted' | 'Checking', string | null] {
