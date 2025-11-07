@@ -8,6 +8,7 @@ export type ExcelExportEntity = AppMsgEx &
   Partial<ArticleMetadata> & {
     content?: string;
     comments?: any[];
+    _accountName: string | null;
   };
 
 // 导出为 excel 文件
@@ -18,6 +19,7 @@ export async function export2ExcelFile(data: ExcelExportEntity[], filename: stri
 
   // 设置表头
   worksheet.columns = [
+    { header: '公众号', key: '_accountName', width: 20 },
     { header: 'ID', key: 'aid', width: 20 },
     { header: '链接', key: 'link', width: 50 },
     { header: '标题', key: 'title', width: 80 },
@@ -40,6 +42,7 @@ export async function export2ExcelFile(data: ExcelExportEntity[], filename: stri
   // 添加数据
   data.forEach(item => {
     worksheet.addRow({
+      _accountName: item._accountName,
       aid: item.aid,
       link: item.link,
       title: item.title,

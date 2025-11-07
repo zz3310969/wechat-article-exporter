@@ -77,3 +77,13 @@ export async function getInfoCache(fakeid: string): Promise<Info | undefined> {
 export async function getAllInfo(): Promise<Info[]> {
   return db.info.toArray();
 }
+
+// 获取公众号的名称
+export async function getAccountNameByFakeid(fakeid: string): Promise<string | null> {
+  const account = await getInfoCache(fakeid);
+  if (!account) {
+    return null;
+  }
+
+  return account.nickname || null;
+}

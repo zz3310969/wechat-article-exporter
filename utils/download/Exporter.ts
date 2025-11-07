@@ -11,7 +11,7 @@ import { getResourceCache, updateResourceCache } from '~/store/v2/resource';
 import { getArticleByLink } from '~/store/v2/article';
 import { filterInvalidFilenameChars, sleep } from '~/utils';
 import usePreferences from '~/composables/usePreferences';
-import { getAllInfo, type Info } from '~/store/v2/info';
+import { getAccountNameByFakeid, getAllInfo, type Info } from '~/store/v2/info';
 import { getArticleComments, renderComments } from '~/utils/comment';
 import { type ExcelExportEntity, export2ExcelFile, export2JsonFile } from '~/utils/exporter';
 import TurndownService from 'turndown';
@@ -229,7 +229,8 @@ export class Exporter extends BaseDownload {
       console.debug(`(${i + 1}/${total})开始导出: ${url}`);
 
       const article = await getArticleByLink(url);
-      const exportedArticle: ExcelExportEntity = { ...article };
+      const accountName = await getAccountNameByFakeid(article.fakeid);
+      const exportedArticle: ExcelExportEntity = { ...article, _accountName: accountName };
       if (preferences.value.exportConfig.exportExcelIncludeContent) {
         exportedArticle.content = await this.getPureContent(url, 'text', parser);
       }
@@ -262,7 +263,9 @@ export class Exporter extends BaseDownload {
       console.log(`(${i + 1}/${total})开始导出: ${url}`);
 
       const article = await getArticleByLink(url);
-      const exportedArticle: ExcelExportEntity = { ...article };
+      const accountName = await getAccountNameByFakeid(article.fakeid);
+      const exportedArticle: ExcelExportEntity = { ...article, _accountName: accountName };
+
       if (preferences.value.exportConfig.exportJsonIncludeContent) {
         exportedArticle.content = await this.getPureContent(url, 'text', parser);
       }
