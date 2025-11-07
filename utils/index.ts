@@ -926,6 +926,6 @@ export function bestConcurrencyCount(proxyCount: number): number {
 // 过滤文件名中的非法字符
 export function filterInvalidFilenameChars(input: string): string {
   // 只保留中文字符、英文字符、数字
-  const regex = /[^\u4e00-\u9fa5a-zA-Z0-9]/g;
-  return input.replace(regex, '').slice(0, 100).trim();
+  const regex = /[^\u4e00-\u9fa5a-zA-Z0-9()（）]/g;
+  return input.replace(regex, '_').slice(0, 100).trim();
 }
