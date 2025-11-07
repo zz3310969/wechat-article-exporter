@@ -32,9 +32,7 @@ async function getAuthKey() {
     <p class="text-rose-500 font-medium mt-3">
       注意：目前接入 API 免费，后续会根据实际情况动态调整，不排除会改为收费模式。
     </p>
-    <p class="text-rose-500 font-medium mt-1">
-      该功能仍在测试阶段，函数签名及认证方式等都有可能发生变化，请时刻关注更新。
-    </p>
+    <p class="text-rose-500 font-medium mt-1">如果你的调用量比较大的话，推荐进行私有部署。</p>
 
     <UAlert class="mt-10 mb-3">
       <template #title>
@@ -46,12 +44,12 @@ async function getAuthKey() {
 
       <template #description>
         <ol class="list-decimal pl-5 text-base">
-          <li>
-            <p>
-              由于微信公众号本身的限制，密钥有效期最长为 4 天，且只能通过
-              <span class="text-rose-500 font-medium">微信扫码</span> 获取。
-            </p>
-          </li>
+          <!--          <li>-->
+          <!--            <p>-->
+          <!--              由于微信公众号本身的限制，密钥有效期最长为 4 天，且只能通过-->
+          <!--              <span class="text-rose-500 font-medium">微信扫码</span> 获取。-->
+          <!--            </p>-->
+          <!--          </li>-->
           <li>
             <p>以下所有 <code>API</code> 如无特殊说明，均需要携带密钥进行调用。密钥可通过以下两种方式传输：</p>
             <p>a. 通过自定义请求头 <code class="text-rose-500 font-medium font-mono">X-Auth-Key</code></p>

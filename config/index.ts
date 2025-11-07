@@ -293,7 +293,7 @@ export const apis = [
     },
   },
   {
-    name: '获取文章内容 (开发中)',
+    name: '获取文章内容',
     description: '获取文章内容，支持 html / markdown / text 格式',
     url: '/api/public/v1/download',
     method: 'GET',
