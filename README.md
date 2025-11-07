@@ -9,8 +9,9 @@
 ![GitHub License]
 
 
-一款在线的微信公众号文章批量下载工具，支持下载阅读量与评论数据，无需搭建任何环境，可通过在线网站使用，也支持 docker 私有化部署，支持部署到 Cloudflare 上面。
-HTML 格式可100%还原文章样式。
+一款在线的 **微信公众号文章批量下载** 工具，支持导出阅读量与评论数据，无需搭建任何环境，可通过 [在线网站] 使用，同时也支持 docker 私有化部署和 Cloudflare 部署。
+
+支持下载各种文件格式，其中 HTML 格式可100%还原文章排版与样式。
 
 交流群(QQ): `991482155`
 
@@ -91,3 +92,5 @@ MIT
 [Star History Chart]: https://api.star-history.com/svg?repos=wechat-article/wechat-article-exporter&type=Timeline
 
 [Star History Chart Link]: https://star-history.com/#wechat-article/wechat-article-exporter&Timeline
+
+[在线网站]: https://exporter.wxdown.online
