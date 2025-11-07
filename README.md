@@ -73,10 +73,6 @@ MIT
 
 <!-- Definitions -->
 
-[deploy-badge]: https://img.shields.io/github/actions/workflow/status/jooooock/wechat-article-exporter/.github%2Fworkflows%2Fdeno_deploy.yml?label=Deploy
-
-[deploy]: https://github.com/jooooock/wechat-article-exporter/actions
-
 [GitHub stars]: https://img.shields.io/github/stars/wechat-article/wechat-article-exporter?style=social&label=Star&style=plastic
 
 [GitHub forks]: https://img.shields.io/github/forks/wechat-article/wechat-article-exporter?style=social&label=Fork&style=plastic

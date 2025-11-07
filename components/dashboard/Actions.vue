@@ -59,7 +59,7 @@ const authPanelOpen = ref(false);
     <li>
       <UTooltip text="GitHub">
         <UIcon
-          @click="gotoLink('https://github.com/jooooock/wechat-article-exporter')"
+          @click="gotoLink('https://github.com/wechat-article/wechat-article-exporter')"
           name="i-lucide:github"
           class="action-icon"
         />
