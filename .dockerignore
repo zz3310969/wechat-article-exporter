@@ -26,3 +26,6 @@ node_modules
 design
 docs
 nuxt-options.json
+
+# wrangler
+.wrangler

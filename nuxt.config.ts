@@ -88,6 +88,7 @@ export default defineNuxtConfig({
     org: process.env.NUXT_SENTRY_ORG,
     project: process.env.NUXT_SENTRY_PROJECT,
     authToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+    telemetry: false,
   },
 
   // https://umami.nuxt.dev/api/configuration

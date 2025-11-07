@@ -1,4 +1,4 @@
-import { Window } from 'happy-dom';
+import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
 import { getTokenFromStore } from '~/server/utils/CookieStore';
 import { USER_AGENT } from '~/config';
@@ -41,7 +41,6 @@ export default defineEventHandler(async event => {
     };
   }
 
-  // https://mp.weixin.qq.com/s/tr38EieqyftubIx2FMWUWw
   const rawHtml = await fetch(url, {
     headers: {
       Referer: 'https://mp.weixin.qq.com/',
@@ -50,53 +49,51 @@ export default defineEventHandler(async event => {
     },
   }).then(res => res.text());
 
-  const html = normalizeHtml(rawHtml);
-
   if (format === 'html') {
-    return html;
+    return normalizeHtml(rawHtml, 'html');
   } else if (format === 'text') {
-    // return ($jsArticleContent as HTMLElement).innerText!.replace(/\s+/g, ' ').trim();
-    return '(text)';
+    return normalizeHtml(rawHtml, 'text');
   } else if (format === 'markdown') {
     const turndownService = new TurndownService();
-    return turndownService.turndown(html);
+    return turndownService.turndown(normalizeHtml(rawHtml, 'html'));
   }
 });
 
-function normalizeHtml(rawHTML: string): string {
-  const window = new Window({ url: 'https://localhost:8080' });
-  const document = window.document;
-
-  document.body.innerHTML = rawHTML;
-
-  const $jsArticleContent = document.querySelector('#js_article')!;
+function normalizeHtml(rawHTML: string, format: 'html' | 'text' = 'html'): string {
+  const $ = cheerio.load(rawHTML);
+  const $jsArticleContent = $('#js_article');
 
   // #js_content 默认是不可见的(通过js修改为可见)，需要移除该样式
-  $jsArticleContent.querySelector('#js_content')?.removeAttribute('style');
+  $jsArticleContent.find('#js_content').removeAttr('style');
 
   // 删除无用dom元素
-  $jsArticleContent.querySelector('#js_top_ad_area')?.remove();
-  $jsArticleContent.querySelector('#js_tags_preview_toast')?.remove();
-  $jsArticleContent.querySelector('#content_bottom_area')?.remove();
-  $jsArticleContent.querySelectorAll('script').forEach(el => {
-    el.remove();
-  });
-  $jsArticleContent.querySelector('#js_pc_qr_code')?.remove();
-  $jsArticleContent.querySelector('#wx_stream_article_slide_tip')?.remove();
+  $jsArticleContent.find('#js_top_ad_area').remove();
+  $jsArticleContent.find('#js_tags_preview_toast').remove();
+  $jsArticleContent.find('#content_bottom_area').remove();
 
-  // 处理图片懒加载
-  const imgs = document.querySelectorAll('img');
-  for (const img of imgs) {
-    const imgUrl = img.getAttribute('src') || img.getAttribute('data-src');
+  // 删除所有 script 标签（在 #js_article 上下文中）
+  $jsArticleContent.find('script').remove();
+
+  $jsArticleContent.find('#js_pc_qr_code').remove();
+  $jsArticleContent.find('#wx_stream_article_slide_tip').remove();
+
+  // 处理图片懒加载（全局处理所有 img）
+  $('img').each((i, el) => {
+    const $img = $(el);
+    const imgUrl = $img.attr('src') || $img.attr('data-src');
     if (imgUrl) {
-      img.src = imgUrl;
+      $img.attr('src', imgUrl);
     }
-  }
+  });
 
-  let bodyCls = document.body.className;
-  const pageContentHTML = $jsArticleContent.outerHTML;
-
-  return `<!DOCTYPE html>
+  if (format === 'text') {
+    // 获取纯文本内容
+    return $jsArticleContent.text().trim();
+  } else if (format === 'html') {
+    // 获取修改后的 HTML
+    let bodyCls = $('body').attr('class');
+    const pageContentHTML = $('<div>').append($jsArticleContent.clone()).html();
+    return `<!DOCTYPE html>
   <html lang="zh_CN">
   <head>
       <meta charset="utf-8">
@@ -134,4 +131,7 @@ function normalizeHtml(rawHTML: string): string {
   </body>
   </html>
     `;
+  } else {
+    throw new Error(`format not supported: ${format}`);
+  }
 }

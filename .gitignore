@@ -25,3 +25,6 @@ docs
 .env
 .env.*
 !.env.example
+
+# wrangler
+.wrangler
