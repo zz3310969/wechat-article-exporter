@@ -52,7 +52,7 @@ export default defineEventHandler(async event => {
   const body = JSON.stringify({
     nickname: nick_name,
     avatar: head_img,
-    expires: dayjs().add(3, 'days').toString(),
+    expires: dayjs().add(4, 'days').toString(),
   });
   const headers = new Headers(response.headers);
   headers.set('Content-Length', new TextEncoder().encode(body).length.toString());

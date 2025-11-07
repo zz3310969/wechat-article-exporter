@@ -791,26 +791,4 @@ ${commentHTML}
     dirnameTpl = dirnameTpl.replace(/\$\{mm}/g, articleUpdateTime.format('mm'));
     return dirnameTpl;
   }
-
-  // 导出调试数据
-  public async exportDebugInfo(): Promise<void> {
-    const debugs = await getDebugInfo();
-    const total = debugs.length;
-    console.log(`总共${total}条调试数据`);
-    for (let i = 0; i < total; i++) {
-      const asset = debugs[i];
-      console.log(`(${i + 1}/${total})开始导出: ${asset.title}`);
-      await this.writeFile(asset.type + '_' + filterInvalidFilenameChars(asset.title) + '.html', asset.file);
-    }
-
-    alert('导出完成');
-  }
-
-  public async debug() {
-    await this.acquireExportDirectoryHandle();
-    await this.writeFile(
-      filterInvalidFilenameChars('假如苹果来发布新款C++...') + '/a.html',
-      new Blob(['hello'], { type: 'text/plain' })
-    );
-  }
 }
