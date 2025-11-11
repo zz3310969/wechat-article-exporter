@@ -406,6 +406,7 @@ export const apis = [
       },
     ],
     responseSample: {},
+    remark: '此接口不需要 API 密钥',
   },
 ];
 

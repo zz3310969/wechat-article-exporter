@@ -1,6 +1,5 @@
 import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
-import { getTokenFromStore } from '~/server/utils/CookieStore';
 import { USER_AGENT } from '~/config';
 
 interface SearchBizQuery {
@@ -9,17 +8,6 @@ interface SearchBizQuery {
 }
 
 export default defineEventHandler(async event => {
-  const token = await getTokenFromStore(event);
-
-  if (!token) {
-    return {
-      base_resp: {
-        ret: -1,
-        err_msg: '认证信息无效',
-      },
-    };
-  }
-
   const query = getQuery<SearchBizQuery>(event);
   if (!query.url) {
     return {
