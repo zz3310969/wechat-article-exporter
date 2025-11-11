@@ -88,7 +88,14 @@ function normalizeHtml(rawHTML: string, format: 'html' | 'text' = 'html'): strin
 
   if (format === 'text') {
     // 获取纯文本内容
-    return $jsArticleContent.text().trim();
+    const text = $jsArticleContent.text().trim().replace(/\n+/g, '\n').replace(/ +/g, ' ');
+    // 分割成行
+    const lines = text.split('\n');
+    // 过滤掉全空白行（^\s*$ 表示行首到行尾全是空白字符）
+    const filteredLines = lines.filter(line => !/^\s*$/.test(line));
+
+    // 重新连接行
+    return filteredLines.join('\n');
   } else if (format === 'html') {
     // 获取修改后的 HTML
     let bodyCls = $('body').attr('class');
