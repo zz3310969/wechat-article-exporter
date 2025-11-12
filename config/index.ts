@@ -73,7 +73,7 @@ export const ACCOUNT_TYPE: Record<number, string> = {
  */
 
 /**
- * 公共代理
+ * 公共代理节点
  */
 export const PUBLIC_PROXY_LIST: string[] = [
   'https://00.worker-proxy.asia',
