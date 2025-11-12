@@ -21,5 +21,5 @@ export default defineEventHandler(async event => {
   }).then(res => res.text());
 
   const $ = cheerio.load(rawHtml);
-  return $('.wx_follow_nickname').text().trim();
+  return $('.wx_follow_nickname:first').text().trim();
 });
