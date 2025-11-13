@@ -1,4 +1,4 @@
-export const isDev = !import.meta.env.PROD;
+export const isDev = process.env.NODE_ENV === 'development';
 
 export const websiteName = '公众号文章导出';
 

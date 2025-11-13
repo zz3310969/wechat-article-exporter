@@ -32,7 +32,8 @@ export default defineEventHandler(async event => {
     fs.writeFileSync(`samples/aboutbiz/biz-${biz}.html`, rawHtml);
   }
 
-  return extractInfo(rawHtml);
+  const result = extractInfo(rawHtml);
+  return result;
 });
 
 function extractInfo(rawHTML: string) {
