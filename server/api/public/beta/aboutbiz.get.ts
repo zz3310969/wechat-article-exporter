@@ -83,6 +83,8 @@ function extractInfo(rawHTML: string) {
           name: ['.js_item'],
         })
         .name.map(item => item.trim());
+    } else if (title === '客服电话') {
+      result.phone = $itemInfo.find('.item-desc').text().trim();
     } else {
       console.log(`title: <${title}>`);
       console.log($itemInfo.text());
