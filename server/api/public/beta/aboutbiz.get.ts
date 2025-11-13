@@ -33,7 +33,21 @@ export default defineEventHandler(async event => {
   }
 
   const result = extractInfo(rawHtml);
-  return result;
+  if (Object.keys(result).length > 0) {
+    return {
+      base_resp: {
+        ret: 0,
+      },
+      data: result,
+    };
+  } else {
+    return {
+      base_resp: {
+        ret: -1,
+        err_msg: '密钥已过期',
+      },
+    };
+  }
 });
 
 function extractInfo(rawHTML: string) {

@@ -408,6 +408,44 @@ export const apis = [
     responseSample: {},
     remark: '此接口不需要 API 密钥',
   },
+  {
+    name: '查询公众号主体信息1 (beta)',
+    description: '根据公众号的 biz 查询主体信息',
+    url: '/api/public/beta/aboutbiz',
+    method: 'GET',
+    params: [
+      {
+        label: '公众号id',
+        name: 'biz',
+        location: 'query',
+        required: true,
+        default: 'N/A',
+        type: 'String',
+        remark: '',
+      },
+    ],
+    responseSample: {},
+    remark: '此接口不需要 API 密钥',
+  },
+  {
+    name: '查询公众号主体信息2 (beta)',
+    description: '根据公众号的 biz 查询主体信息',
+    url: '/api/public/beta/authorinfo',
+    method: 'GET',
+    params: [
+      {
+        label: '公众号id',
+        name: 'biz',
+        location: 'query',
+        required: true,
+        default: 'N/A',
+        type: 'String',
+        remark: '',
+      },
+    ],
+    responseSample: {},
+    remark: '此接口不需要 API 密钥',
+  },
 ];
 
 // 图片代理服务 todo: 这个可以在设置里增加一个配置项，网站是否启用图片代理，否的话置空即可。相应的，可以与 no-referer 配置互斥。
