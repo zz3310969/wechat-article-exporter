@@ -84,7 +84,11 @@ function extractInfo(rawHTML: string) {
         auth_3rd_list: [],
       },
     };
-    eval(scriptCode);
+    try {
+      eval(scriptCode);
+    } catch (e) {
+      console.error('eval execute js code fatal:', e);
+    }
     if (window.ip_wording) {
       result.ip_wording = window.ip_wording;
     }
