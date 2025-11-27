@@ -7,7 +7,6 @@ export default defineEventHandler(async event => {
 
   const name = await $fetch('/api/web/misc/accountname?url=' + encodeURIComponent(url));
   if (name) {
-    console.log(`解析的公众号名称为: <${name}>`);
     const resp = await $fetch(`/api/web/mp/searchbiz?keyword=${name}&size=1`, {
       headers: {
         'X-Auth-Key': getHeader(event, 'X-Auth-Key')!,
@@ -21,6 +20,8 @@ export default defineEventHandler(async event => {
         base_resp: {
           ret: -1,
           err_msg: '根据解析的名称搜索公众号失败',
+          original_resp: resp,
+          resolved_name: name,
         },
       };
     }
