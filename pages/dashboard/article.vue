@@ -30,6 +30,8 @@ import type { PreviewArticle } from '#components';
 import type { Preferences } from '~/types/preferences';
 import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
 import { isDev } from '~/config';
+import { readBlob } from '#shared/utils';
+import { normalizeHtml } from '#shared/utils/html';
 
 let globalRowData: Article[] = [];
 
@@ -961,8 +963,15 @@ async function export2word() {
 }
 
 async function debug() {
-  const article = await getArticleByLink('https://mp.weixin.qq.com/s/8sCrH6AZyyff5dVXQAzVFQ');
-  console.log(article);
+  // const article = await getArticleByLink('https://mp.weixin.qq.com/s/8sCrH6AZyyff5dVXQAzVFQ');
+  // console.log(article);
+  const cache = await getHtmlCache('https://mp.weixin.qq.com/s/Uzr9f6SRQ_H1qM812vYXdg');
+  if (cache) {
+    const rawHtml = await readBlob(cache.file);
+    // console.log(rawHtml);
+    const html = normalizeHtml(rawHtml);
+    console.log(html);
+  }
 }
 </script>
 

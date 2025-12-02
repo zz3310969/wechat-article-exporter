@@ -4,13 +4,14 @@ import { isDev } from '~/config';
 
 interface AboutBizQuery {
   biz: string;
+  key: string;
 }
 
 const USER_AGENT =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) MicroMessenger/8.0.64(0x18004034) Language/zh_CN';
 
 export default defineEventHandler(async event => {
-  const { biz } = getQuery<AboutBizQuery>(event);
+  const { biz, key } = getQuery<AboutBizQuery>(event);
 
   const query: Record<string, string> = {
     __biz: biz,
@@ -23,7 +24,7 @@ export default defineEventHandler(async event => {
     headers: {
       'User-Agent': USER_AGENT,
       'x-wechat-uin': process.env.NUXT_WECHAT_ABOUT_BIZ_UIN || '',
-      'x-wechat-key': process.env.NUXT_WECHAT_ABOUT_BIZ_KEY || '',
+      'x-wechat-key': key || process.env.NUXT_WECHAT_ABOUT_BIZ_KEY || '',
     },
   }).then(resp => resp.text());
 
@@ -59,7 +60,7 @@ function extractInfo(rawHTML: string) {
   while ($itemInfo.length > 0) {
     const title = $itemInfo.find('.item-title').text().trim();
 
-    if (title === '公众号简介') {
+    if (['公众号简介', '服务号简介'].includes(title)) {
       result.intro = $itemInfo.find('.item-desc').text().trim();
     } else if (title === '基础信息') {
       // nop

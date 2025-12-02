@@ -1,6 +1,7 @@
 import TurndownService from 'turndown';
 import { USER_AGENT } from '~/config';
-import { urlIsValidMpArticle, normalizeHtml } from '~/server/utils';
+import { urlIsValidMpArticle } from '#shared/utils';
+import { normalizeHtml } from '#shared/utils/html';
 
 interface SearchBizQuery {
   url: string;

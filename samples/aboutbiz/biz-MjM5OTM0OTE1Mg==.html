@@ -35,7 +35,7 @@
             window.LANG= "zh_CN"; 
 
         </script>
-        <title>关于公众号</title>
+        <title>关于服务号</title>
         <script nonce="">
         (() => {
             
@@ -123,7 +123,7 @@
         window.key = params['key'] || "777" || '';
         window.wxtoken = params['wxtoken'] || '';
         window.pass_ticket = params['pass_ticket'] || '';
-        window.appmsg_token = "1350_Y%2BlPn0l1H1rKSVmLtMuUI3YAxS9ChYsKbFAZmQ~~";
+        window.appmsg_token = "1350_Ot8s1hiJLw8Zu42KpFh6o9_LRIUM1iEumXSqGQ~~";
     })();
 
     function wx_loaderror() {
@@ -144,20 +144,20 @@
       
       
                   <div class="item-info">
-        <div class="item-title basic-title">公众号简介</div>
-        <div class="item-desc basic-desc">北京市第五十四中学公众账号平台</div>
+        <div class="item-title basic-title">服务号简介</div>
+        <div class="item-desc basic-desc">让您每一次用餐都成为“欢乐体验”，也希望我们能够陪伴您度过每一刻“欢乐时光”。</div>
       </div>
                   <div class="item-info">
         <div class="item-title basic-title">基础信息</div>
       </div>
             <div class="item-info basic-info">
         <div class="item-title">微信号</div>
-        <div class="item-desc">bj54zx</div>
+        <div class="item-desc">bishengkehuanle</div>
       </div>
                 
             <div class="item-info basic-info">
-                <div class="item-title">主体类型</div>
-                <div class="item-desc">事业单位          <i class="item-title-type inline-icon institutions"></i></div>
+                <div class="item-title">认证类型</div>
+                <div class="item-desc">企业</div>
                 
       </div>
         
@@ -166,10 +166,10 @@
             <div class="item-info spacial basic-info" id="link">
                 <div class="item-title">认证主体</div>
                 
-        <a href="http://mp.weixin.qq.com/mp/getverifyinfo?__biz=MzAxODU1ODg2Mg==#wechat_webview_type=1&amp;wechat_redirect" target="_blank" class="type-link-wrp item-desc">
+        <a href="http://mp.weixin.qq.com/mp/getverifyinfo?__biz=MjM5OTM0OTE1Mg==#wechat_webview_type=1&amp;wechat_redirect" target="_blank" class="type-link-wrp item-desc">
           <div id="js_arrow_text" class="type-link-word-wrp">
             
-            北京市第五十四中学
+            百胜(中国)投资有限公司
             <i class="item-title-type inline-icon group-without-wording"></i>              
           </div>
           <i class="type-link-icon icon-link arrow-right"></i>
@@ -186,7 +186,7 @@
       
                   <div class="item-info basic-info">
         <div class="item-title">客服电话</div>
-        <div class="item-desc">01084221682</div>
+        <div class="item-desc">4009701890</div>
       </div>
             
       
@@ -194,6 +194,24 @@
       
 
                         
+              <div class="item-info">
+          <div class="item-title basic-title">授权第三方服务</div>
+          <div class="item-desc basic-desc" id="js_auth_info">
+                                    <p id="js_auth_info_item" class="principal-data" data-count="0">
+              电子卡券
+              <i class="js-category-info weui-icon-info-circle" data-count="0"></i>
+            </p>
+                                    <p id="js_auth_info_item" class="principal-data" data-count="1">
+              必胜客排队PROD
+              <i class="js-category-info weui-icon-info-circle" data-count="1"></i>
+            </p>
+                                    <p id="js_auth_info_item" class="principal-data" data-count="2">
+              网易七鱼-百胜客服
+              <i class="js-category-info weui-icon-info-circle" data-count="2"></i>
+            </p>
+                                  </div>
+          <a id="js_btn_auth_all" class="show_more_btn" href="javascript:;" style="display: none">展开<i class="type-link-icon icon-link arrow-down"></i></a>
+        </div>
             
 
       
@@ -315,10 +333,89 @@ window.logs.pagetime.page_begin = Date.now();
   var cgiData = {
     auth_3rd_list: []
   };
-      window.ip_wording = {
+            window.cgiData.auth_3rd_list.push({
+        principal: '电子卡券',
+        userName: 'gh_d483129a0f29@app',
+        appId: 'wx19e904724550a41f',
+        relativeURL: 'pages/profile/index?enterpriseOpenId=sq_oRPaqjnX_sUpjvs9-TjP6p1VRaQQ&amp;from=profile&amp;fromAppId=wx6173eb6085accfec&amp;componentAppId=wx6803d7ca3db40a68',
+        category: [
+                    {
+            id: '4' * 1,
+            name: '网页服务',
+            desc: '基于该权限可帮助公众实现H5网页服务',
+          },
+                    {
+            id: '7' * 1,
+            name: '群发与通知',
+            desc: '基于该权限可帮助公众号进行群发消息、文章管理以及发送模板消息',
+          },
+                    {
+            id: '8' * 1,
+            name: '微信卡券',
+            desc: '基于该权限可帮助公众号使用微信卡券功能',
+          },
+                    {
+            id: '26' * 1,
+            name: '微信电子发票',
+            desc: '基于该权限可帮助公众号使用微信电子发票功能',
+          },
+                  ],
+      });
+          window.cgiData.auth_3rd_list.push({
+        principal: '必胜客排队PROD',
+        userName: 'gh_d483129a0f29@app',
+        appId: 'wx19e904724550a41f',
+        relativeURL: 'pages/profile/index?enterpriseOpenId=sq_oyKJ5t3j_-QLUPEbWH0MTgLirzrs&amp;from=profile&amp;fromAppId=wx6173eb6085accfec&amp;componentAppId=wxa33f461c3ebdc6a4',
+        category: [
+                    {
+            id: '2' * 1,
+            name: '用户管理',
+            desc: '帮助公众号获取用户信息，进行用户管理',
+          },
+                    {
+            id: '3' * 1,
+            name: '公众号账号信息服务',
+            desc: '基于该权限可帮助公众号设置及展示公众号信息、配置账号信息、生成带参二维码并配置跳转小程序等账号维度的功能',
+          },
+                    {
+            id: '7' * 1,
+            name: '群发与通知',
+            desc: '基于该权限可帮助公众号进行群发消息、文章管理以及发送模板消息',
+          },
+                  ],
+      });
+          window.cgiData.auth_3rd_list.push({
+        principal: '网易七鱼-百胜客服',
+        userName: 'gh_d483129a0f29@app',
+        appId: 'wx19e904724550a41f',
+        relativeURL: 'pages/profile/index?enterpriseOpenId=sq_o5Cdf1Xs-S6a788peMLJ7aZ8yx8U&amp;from=profile&amp;fromAppId=wx6173eb6085accfec&amp;componentAppId=wx6fbcc057d787691f',
+        category: [
+                    {
+            id: '1' * 1,
+            name: '消息管理',
+            desc: '基于该权限可帮助公众号接收用户消息，进行人工客服回复或自动回复',
+          },
+                    {
+            id: '2' * 1,
+            name: '用户管理',
+            desc: '帮助公众号获取用户信息，进行用户管理',
+          },
+                    {
+            id: '7' * 1,
+            name: '群发与通知',
+            desc: '基于该权限可帮助公众号进行群发消息、文章管理以及发送模板消息',
+          },
+                    {
+            id: '11' * 1,
+            name: '素材管理',
+            desc: '基于该权限可帮助公众号管理图文等多媒体素材以及多媒体文件管理',
+          },
+                  ],
+      });
+          window.ip_wording = {
     countryName: '中国',
     countryId: '156',
-    provinceName: '北京',
+    provinceName: '上海',
     provinceId: '',
     cityName: '',
     cityId: ''

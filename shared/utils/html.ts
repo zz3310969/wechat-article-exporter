@@ -1,18 +1,6 @@
 import * as cheerio from 'cheerio';
 
 /**
- * url是否是合法的微信公众号文章url
- * @param url
- */
-export function urlIsValidMpArticle(url: string) {
-  try {
-    return new URL(url).hostname === 'mp.weixin.qq.com';
-  } catch (e) {
-    return false;
-  }
-}
-
-/**
  * 处理文章的 html 内容
  * @description 服务端采用 cheerio 库解析并修改 html 内容
  * @param rawHTML 公众号文章的原始 html

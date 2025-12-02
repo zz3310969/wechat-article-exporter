@@ -4,7 +4,7 @@ import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
 import { sleep, timeout, bestConcurrencyCount } from '~/utils';
 import usePreferences from '~/composables/usePreferences';
-import { PUBLIC_PROXY_LIST } from '~/config';
+import { PUBLIC_PROXY_LIST } from '~/config/public-proxy';
 import { DEFAULT_OPTIONS } from './constants';
 import { extractCommentId } from '~/utils/comment';
 

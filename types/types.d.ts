@@ -38,12 +38,6 @@ export interface AccountInfo {
   _loaded?: boolean;
 }
 
-export interface AuthorInfo {
-  type: 'author';
-  nickname: string;
-  fakeid: string;
-}
-
 export interface SearchBizResponse {
   base_resp: BaseResp;
   list: AccountInfo[];
@@ -186,41 +180,4 @@ export interface DownloadableArticle {
 export interface LogoutResponse {
   statusCode: number;
   statusText: string;
-}
-
-export interface PostSwitchAccResponse {
-  base_resp: BaseResp;
-  data: any;
-}
-export interface SwitchAccResponse {
-  base_resp: BaseResp;
-  order: number;
-  status: number;
-  scan_login_ctx: ScanLoginCtx;
-  biz_list: ServiceBizList;
-  service_biz_list: ServiceBizList;
-  wxa_biz_list: ServiceBizList;
-  wxproduct_biz_list: ServiceBizList;
-}
-
-interface ScanLoginCtx {
-  account_switch_permit: 0 | 1;
-}
-
-export interface ServiceBizListItem {
-  order_type: number;
-  acct_type: number;
-  bizuin: number;
-  headimgurl: string;
-  is_admin: 0 | 1;
-  is_test_acct: boolean;
-  last_login_time: number;
-  link_time: number;
-  nickname: string;
-  username: string;
-}
-interface ServiceBizList {
-  length: number;
-  list: ServiceBizListItem[];
-  order_type: number;
 }

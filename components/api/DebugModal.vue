@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { apis } from '~/config';
+import { apis } from '~/config/public-apis';
 import type { FormError } from '#ui/types';
 import CodeSegment from '~/components/api/CodeSegment.vue';
 
