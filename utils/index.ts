@@ -984,3 +984,26 @@ export function filterInvalidFilenameChars(input: string): string {
   const regex = /[^\u4e00-\u9fa5a-zA-Z0-9()（）]/g;
   return input.replace(regex, '_').slice(0, 100).trim();
 }
+
+// 检测用户浏览器是否为 Chrome
+export function isChromeBrowser() {
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  if (userAgent.includes('micromessenger')) {
+    // 微信内置浏览器
+    return false;
+  }
+
+  if (!userAgent.includes('chrome')) {
+    // 非 Chromium 内核
+    return false;
+  }
+
+  if (typeof (navigator as any).brave === 'object') {
+    // Brave 浏览器
+    return false;
+  }
+
+  // catch-all
+  return true;
+}
