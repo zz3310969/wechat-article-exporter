@@ -1,5 +1,6 @@
 import { StorageSerializers } from '@vueuse/core';
 import type { Preferences } from '~/types/preferences';
+import { MP_ORIGIN_TIMESTAMP } from '~/config';
 
 const defaultOptions: Partial<Preferences> = {
   hideDeleted: true,
@@ -17,6 +18,7 @@ const defaultOptions: Partial<Preferences> = {
   },
   accountSyncSeconds: 5,
   syncDateRange: 'all',
+  syncDatePoint: MP_ORIGIN_TIMESTAMP,
 };
 
 export default () => {

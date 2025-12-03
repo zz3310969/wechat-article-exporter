@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 /**
  * 是否在开发环境
  */
@@ -51,3 +53,8 @@ export const IMAGE_PROXY = '';
  */
 export const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 WAE/1.0';
+
+/**
+ * 微信公众号上线时间 2012-08-23
+ */
+export const MP_ORIGIN_TIMESTAMP = dayjs('2012-08-23 00:00:00').unix();

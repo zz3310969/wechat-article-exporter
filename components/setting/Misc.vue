@@ -64,46 +64,43 @@
         </div>
       </div>
     </div>
-    <!--    <div class="border border-slate-200 p-3 rounded-md mt-5">-->
-    <!--      <p class="mb-3">同步时间范围：</p>-->
-    <!--      <RadioGroup name="duration" :options="DURATION_OPTIONS" v-model="preferences.syncDateRange" />-->
-    <!--    </div>-->
+    <div class="border border-slate-200 p-3 rounded-md mt-5">
+      <p class="flex justify-between items-center mb-3">
+        <span class="text-xl font-medium">同步时间范围: </span>
+        <span class="text-sm text-blue-500 font-medium">实际同步范围: {{ getActualDateRange() }}</span>
+      </p>
+
+      <div class="flex gap-3">
+        <USelectMenu
+          class="w-1/2"
+          v-model="preferences.syncDateRange"
+          :options="DURATION_OPTIONS"
+          value-attribute="value"
+          option-attribute="label"
+        />
+        <UPopover v-if="preferences.syncDateRange === 'point'" :popper="{ placement: 'bottom-start' }">
+          <UButton color="gray" icon="i-heroicons-calendar-days-20-solid" :label="formatDate()" />
+
+          <template #panel="{ close }">
+            <BaseDatePicker v-model="preferences.syncDatePoint" is-required @close="close" />
+          </template>
+        </UPopover>
+      </div>
+    </div>
   </UCard>
 </template>
 
 <script setup lang="ts">
 import type { Preferences } from '~/types/preferences';
+import dayjs from 'dayjs';
+
+const { getActualDateRange, getSelectOptions } = useSyncDeadline();
 
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
 
-const DURATION_OPTIONS = [
-  {
-    value: '1d',
-    label: '最近一天',
-  },
-  {
-    value: '7d',
-    label: '最近七天',
-  },
-  {
-    value: '1m',
-    label: '最近一个月',
-  },
-  {
-    value: '3m',
-    label: '最近三个月',
-  },
-  {
-    value: '6m',
-    label: '最近半年',
-  },
-  {
-    value: '1y',
-    label: '最近一年',
-  },
-  {
-    value: 'all',
-    label: '全部',
-  },
-];
+const DURATION_OPTIONS = getSelectOptions();
+
+function formatDate() {
+  return dayjs.unix(preferences.value.syncDatePoint).format('YYYY-MM-DD');
+}
 </script>

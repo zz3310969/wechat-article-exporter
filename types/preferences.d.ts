@@ -18,7 +18,8 @@ export interface Preferences {
   // 公众号同步频率(单位:秒)
   accountSyncSeconds: number;
 
-  syncDateRange: '1d' | '3d' | '7d' | '1m' | '3m' | '6m' | '1y' | 'all';
+  syncDateRange: '1d' | '3d' | '7d' | '1m' | '3m' | '6m' | '1y' | 'all' | 'point';
+  syncDatePoint: number;
 }
 
 interface ExportConfig {

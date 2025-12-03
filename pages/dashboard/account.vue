@@ -48,6 +48,8 @@ interface PromiseInstance {
 const toast = toastFactory();
 const modal = useModal();
 
+const { getSyncTimestamp } = useSyncDeadline();
+
 const preferences = usePreferences();
 const loginAccount = useLoginAccount();
 // 账号事件总线，用于和 Credentials 面板保持列表同步
@@ -88,28 +90,7 @@ async function onSelectAccount(account: Info) {
 const isCanceled = ref(false);
 const timer = ref<number | null>(null);
 
-const syncToTimestamp = computed(() => {
-  const syncDateRange = (preferences.value as unknown as Preferences).syncDateRange;
-  switch (syncDateRange) {
-    case '1d':
-      return dayjs().subtract(1, 'days').unix();
-    case '3d':
-      return dayjs().subtract(3, 'days').unix();
-    case '7d':
-      return dayjs().subtract(7, 'days').unix();
-    case '1m':
-      return dayjs().subtract(1, 'months').unix();
-    case '3m':
-      return dayjs().subtract(3, 'months').unix();
-    case '6m':
-      return dayjs().subtract(6, 'months').unix();
-    case '1y':
-      return dayjs().subtract(1, 'years').unix();
-    case 'all':
-    default:
-      return 0;
-  }
-});
+const syncToTimestamp = getSyncTimestamp();
 
 async function _load(account: Info, begin: number, loadMore: boolean, promise: PromiseInstance) {
   if (isCanceled.value) {
@@ -151,7 +132,7 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
       articles.push(...cachedArticles);
     }
   }
-  if (articles.at(-1)!.create_time < syncToTimestamp.value) {
+  if (articles.at(-1)!.create_time < syncToTimestamp) {
     // 已同步到配置的时间范围
     await updateRow(account.fakeid);
     syncingRowId.value = null;
