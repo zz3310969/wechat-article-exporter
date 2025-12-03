@@ -58,7 +58,7 @@
             class="w-52 font-mono"
           >
             <template #trailing>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">秒/次</span>
+              <span class="text-gray-500 dark:text-gray-400 text-xs">秒</span>
             </template>
           </UInput>
         </div>
