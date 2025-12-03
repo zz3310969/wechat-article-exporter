@@ -82,8 +82,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'update_time',
     flex: 1,
     minWidth: 160,
-    valueFormatter: (params: ValueFormatterParams) =>
-      params.value ? formatTimeStamp(params.value) : '--',
+    valueFormatter: (params: ValueFormatterParams) => (params.value ? formatTimeStamp(params.value) : '--'),
   },
   {
     headerName: '内容已下载',
