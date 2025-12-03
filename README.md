@@ -53,7 +53,7 @@
 - 感谢 [WeChat_Article] 项目提供原理思路
 
 
-## :coffee: 支持
+## :star: 支持
 
 如果你觉得本项目帮助到了你，请给作者一个免费的 Star，感谢你的支持！
 
@@ -67,7 +67,7 @@
 
 MIT
 
-## :accessibility: 声明
+## :red_circle: 声明
 
 本程序承诺，不会利用您扫码登录的公众号进行任何形式的私有爬虫，也就是说不存在把你的账号作为公共账号为别人爬取文章的行为，也不存在类似账号池的东西。
 
@@ -76,7 +76,7 @@ MIT
 通过本程序获取的公众号文章内容，版权归文章原作者所有，请合理使用。若发现侵权行为，请联系我们处理。
 
 
-## :star: Star 历史
+## :chart_with_upwards_trend: Star 历史
 
 [![Star History Chart]][Star History Chart Link]
 
