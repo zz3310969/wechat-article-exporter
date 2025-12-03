@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CodeSegment from '~/components/api/CodeSegment.vue';
-import type { GetAuthKeyResult } from '~/types/types';
 import toastFactory from '~/composables/toast';
+import type { GetAuthKeyResult } from '~/types/types';
 
 const toast = toastFactory();
 

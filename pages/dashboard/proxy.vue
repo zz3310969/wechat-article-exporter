@@ -24,9 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import type { ResultProxyStatus } from '~/types/proxy';
 import { Loader } from 'lucide-vue-next';
 import { websiteName } from '~/config';
+import type { ResultProxyStatus } from '~/types/proxy';
 
 useHead({
   title: `公共代理 | ${websiteName}`,

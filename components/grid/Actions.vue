@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ICellRendererParams } from 'ag-grid-community';
+
 interface Props {
   params: ICellRendererParams & {
     onGotoLink?: (params: ICellRendererParams) => void;

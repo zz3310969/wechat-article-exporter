@@ -1,6 +1,6 @@
 import { StorageSerializers } from '@vueuse/core';
-import type { Preferences } from '~/types/preferences';
 import { MP_ORIGIN_TIMESTAMP } from '~/config';
+import type { Preferences } from '~/types/preferences';
 
 const defaultOptions: Partial<Preferences> = {
   hideDeleted: true,

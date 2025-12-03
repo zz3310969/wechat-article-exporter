@@ -1,11 +1,11 @@
 import dayjs from 'dayjs';
 import JSZip from 'jszip';
 import mime from 'mime';
+import { getComment } from '~/apis';
 import { getAssetCache, updateAssetCache } from '~/store/v2/assets';
-import * as pool from '~/utils/pool';
 import type { DownloadableArticle } from '~/types/types';
 import type { AudioResource, VideoPageInfo } from '~/types/video';
-import { getComment } from '~/apis';
+import * as pool from '~/utils/pool';
 import { extractCommentId } from './comment';
 
 export function formatTimeStamp(timestamp: number) {

@@ -5,8 +5,8 @@
  * 这个接口用于后端登录成功之后调用，非客户端直接调用
  */
 
-import { proxyMpRequest } from '~/server/utils/proxy-request';
 import { getTokenFromStore } from '~/server/utils/CookieStore';
+import { proxyMpRequest } from '~/server/utils/proxy-request';
 
 export default defineEventHandler(async event => {
   const token = await getTokenFromStore(event);

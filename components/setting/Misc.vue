@@ -91,8 +91,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Preferences } from '~/types/preferences';
 import dayjs from 'dayjs';
+import type { Preferences } from '~/types/preferences';
 
 const { getActualDateRange, getSelectOptions } = useSyncDeadline();
 

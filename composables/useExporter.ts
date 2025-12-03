@@ -1,6 +1,6 @@
 import toastFactory from '~/composables/toast';
-import { Exporter } from '~/utils/download/Exporter';
 import { formatElapsedTime } from '~/utils';
+import { Exporter } from '~/utils/download/Exporter';
 import type { ExporterStatus } from '~/utils/download/types';
 
 export default () => {

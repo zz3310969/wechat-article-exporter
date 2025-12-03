@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { IMAGE_PROXY } from '~/config';
-import StorageUsage from '~/components/StorageUsage.vue';
 import { formatDistance } from 'date-fns';
 import LoginModal from '~/components/modal/Login.vue';
+import StorageUsage from '~/components/StorageUsage.vue';
+import { IMAGE_PROXY } from '~/config';
 import type { LogoutResponse } from '~/types/types';
 
 const loginAccount = useLoginAccount();

@@ -521,7 +521,6 @@ function refreshActionCells() {
     columns: ['single-action'],
   });
 }
-
 </script>
 
 <template>

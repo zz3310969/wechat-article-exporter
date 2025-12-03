@@ -109,9 +109,9 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs';
-import type { ParsedCredential } from '~/types/credential';
+import { CREDENTIAL_API_HOST, CREDENTIAL_LIVE_MINUTES } from '~/config';
 import { getInfoCache } from '~/store/v2/info';
-import { CREDENTIAL_LIVE_MINUTES, CREDENTIAL_API_HOST } from '~/config';
+import type { ParsedCredential } from '~/types/credential';
 
 const isOpen = ref(false);
 

@@ -2,8 +2,8 @@
  * 退出登录接口
  */
 
-import { proxyMpRequest } from '~/server/utils/proxy-request';
 import { getTokenFromStore } from '~/server/utils/CookieStore';
+import { proxyMpRequest } from '~/server/utils/proxy-request';
 
 export default defineEventHandler(async event => {
   const token = await getTokenFromStore(event);

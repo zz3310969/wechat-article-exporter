@@ -1,6 +1,6 @@
-import type { Preferences } from '~/types/preferences';
 import dayjs, { Dayjs } from 'dayjs';
 import { MP_ORIGIN_TIMESTAMP } from '~/config';
+import type { Preferences } from '~/types/preferences';
 
 export default () => {
   const preferences = usePreferences();

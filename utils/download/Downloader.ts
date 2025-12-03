@@ -1,17 +1,17 @@
-import { BaseDownload } from '~/utils/download/BaseDownload';
-import type { DownloadOptions } from './types';
-import type { Metadata } from '~/store/v2/metadata';
-import type { ParsedCredential } from '~/types/credential';
-import type { CommentResponse, ReplyResponse } from '~/types/comment';
-import type { Preferences } from '~/types/preferences';
-import { getHtmlCache, updateHtmlCache } from '~/store/v2/html';
-import { updateMetadataCache } from '~/store/v2/metadata';
-import { updateDebugCache } from '~/store/v2/debug';
+import usePreferences from '~/composables/usePreferences';
+import { getArticleByLink } from '~/store/v2/article';
 import { updateCommentCache } from '~/store/v2/comment';
 import { updateCommentReplyCache } from '~/store/v2/comment_reply';
-import { getArticleByLink } from '~/store/v2/article';
-import { timeout, throwException } from '~/utils';
-import usePreferences from '~/composables/usePreferences';
+import { updateDebugCache } from '~/store/v2/debug';
+import { getHtmlCache, updateHtmlCache } from '~/store/v2/html';
+import type { Metadata } from '~/store/v2/metadata';
+import { updateMetadataCache } from '~/store/v2/metadata';
+import type { CommentResponse, ReplyResponse } from '~/types/comment';
+import type { ParsedCredential } from '~/types/credential';
+import type { Preferences } from '~/types/preferences';
+import { throwException, timeout } from '~/utils';
+import { BaseDownload } from '~/utils/download/BaseDownload';
+import type { DownloadOptions } from './types';
 
 type DownloadType = 'html' | 'metadata' | 'comments';
 

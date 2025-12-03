@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable, type Table } from 'dexie';
 import type { APICall } from './api';
+import type { ArticleAsset } from './article';
 import type { Asset } from './assets';
 import type { CommentAsset } from './comment';
 import type { CommentReplyAsset } from './comment_reply';
@@ -9,7 +10,6 @@ import type { Info } from './info';
 import type { Metadata } from './metadata';
 import type { ResourceAsset } from './resource';
 import type { ResourceMapAsset } from './resource-map';
-import type { ArticleAsset } from './article';
 
 const db = new Dexie('exporter.wxdown.online') as Dexie & {
   api: EntityTable<APICall>;

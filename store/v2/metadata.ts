@@ -1,5 +1,5 @@
-import { db } from './db';
 import type { ArticleMetadata } from '~/utils/download/types';
+import { db } from './db';
 
 export type Metadata = ArticleMetadata & {
   fakeid: string;

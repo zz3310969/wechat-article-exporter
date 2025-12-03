@@ -1,4 +1,4 @@
-import type { PublishInfo, PublishPage, AppMsgExWithFakeID } from '~/types/types';
+import type { AppMsgExWithFakeID, PublishInfo, PublishPage } from '~/types/types';
 import { db } from './db';
 import { type Info, updateInfoCache } from './info';
 

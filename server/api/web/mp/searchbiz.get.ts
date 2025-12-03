@@ -2,8 +2,8 @@
  * 搜索公众号接口
  */
 
-import { proxyMpRequest } from '~/server/utils/proxy-request';
 import { getTokenFromStore } from '~/server/utils/CookieStore';
+import { proxyMpRequest } from '~/server/utils/proxy-request';
 
 interface SearchBizQuery {
   begin?: number;

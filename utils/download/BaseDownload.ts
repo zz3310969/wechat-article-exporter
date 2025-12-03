@@ -1,12 +1,12 @@
-import { ProxyManager } from './ProxyManager';
-import type { DownloaderStatus, DownloadOptions, Listener } from './types';
-import type { ParsedCredential } from '~/types/credential';
-import type { Preferences } from '~/types/preferences';
-import { sleep, timeout, bestConcurrencyCount } from '~/utils';
 import usePreferences from '~/composables/usePreferences';
 import { PUBLIC_PROXY_LIST } from '~/config/public-proxy';
-import { DEFAULT_OPTIONS } from './constants';
+import type { ParsedCredential } from '~/types/credential';
+import type { Preferences } from '~/types/preferences';
+import { bestConcurrencyCount, sleep, timeout } from '~/utils';
 import { extractCommentId } from '~/utils/comment';
+import { DEFAULT_OPTIONS } from './constants';
+import { ProxyManager } from './ProxyManager';
+import type { DownloaderStatus, DownloadOptions, Listener } from './types';
 
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;

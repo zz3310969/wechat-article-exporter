@@ -1,8 +1,8 @@
+import toastFactory from '~/composables/toast';
+import type { Metadata } from '~/store/v2/metadata';
+import { formatElapsedTime } from '~/utils';
 import { Downloader } from '~/utils/download/Downloader';
 import type { DownloaderStatus } from '~/utils/download/types';
-import type { Metadata } from '~/store/v2/metadata';
-import toastFactory from '~/composables/toast';
-import { formatElapsedTime } from '~/utils';
 
 export interface DownloadArticleOptions {
   // 文章内容下载成功回调

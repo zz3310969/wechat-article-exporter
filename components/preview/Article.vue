@@ -9,12 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import type { AppMsgEx } from '~/types/types';
 import HtmlRenderer from '~/components/preview/HtmlRenderer.vue';
-import { getHtmlCache, type HtmlAsset } from '~/store/v2/html';
-import type { Preferences } from '~/types/preferences';
 import usePreferences from '~/composables/usePreferences';
+import { getHtmlCache, type HtmlAsset } from '~/store/v2/html';
 import { getMetadataCache } from '~/store/v2/metadata';
+import type { Preferences } from '~/types/preferences';
+import type { AppMsgEx } from '~/types/types';
 import { renderComments } from '~/utils/comment';
 
 const isOpen = ref(false);

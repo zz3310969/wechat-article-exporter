@@ -121,16 +121,16 @@
 </template>
 
 <script setup lang="ts">
-import { type Info } from '~/store/v2/info';
-import type { AppMsgAlbumInfo, DownloadableArticle } from '~/types/types';
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, Loader } from 'lucide-vue-next';
-import type { AppMsgAlbumResult, ArticleItem, BaseInfo } from '~/types/album';
 import { vElementVisibility } from '@vueuse/components';
-import { useDownloadAlbum } from '~/composables/useBatchDownload';
-import { formatAlbumTime } from '~/utils/album';
-import { gotoLink, sleep } from '~/utils';
-import { websiteName } from '~/config';
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, Loader } from 'lucide-vue-next';
 import AccountSelectorForAlbum from '~/components/selector/AccountSelectorForAlbum.vue';
+import { useDownloadAlbum } from '~/composables/useBatchDownload';
+import { websiteName } from '~/config';
+import { type Info } from '~/store/v2/info';
+import type { AppMsgAlbumResult, ArticleItem, BaseInfo } from '~/types/album';
+import type { AppMsgAlbumInfo, DownloadableArticle } from '~/types/types';
+import { gotoLink, sleep } from '~/utils';
+import { formatAlbumTime } from '~/utils/album';
 
 useHead({
   title: `合集下载 | ${websiteName}`,

@@ -1,7 +1,7 @@
 import { getCommentCache } from '~/store/v2/comment';
 import { getCommentReplyCache } from '~/store/v2/comment_reply';
-import { formatTimeStamp } from '~/utils';
 import { getMetadataCache } from '~/store/v2/metadata';
+import { formatTimeStamp } from '~/utils';
 
 /**
  * 从文章 HTML 中提取 comment_id。

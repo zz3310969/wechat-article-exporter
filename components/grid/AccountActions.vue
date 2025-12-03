@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ICellRendererParams } from 'ag-grid-community';
 import { Loader } from 'lucide-vue-next';
+
 interface Props {
   params: ICellRendererParams & {
     onSync?: (params: ICellRendererParams) => void;

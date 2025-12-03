@@ -1,5 +1,6 @@
 <script setup>
 import * as Sentry from '@sentry/nuxt';
+
 function triggerClientError() {
   throw new Error('Nuxt Button Error');
 }
