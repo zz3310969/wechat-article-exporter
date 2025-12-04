@@ -32,6 +32,7 @@ import { getAllInfo, getInfoCache, type Info, importInfos } from '~/store/v2/inf
 import type { AccountManifest } from '~/types/account';
 import type { Preferences } from '~/types/preferences';
 import { exportAccountJsonFile } from '~/utils/exporter';
+import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
 
 useHead({
   title: `公众号管理 | ${websiteName}`,
@@ -76,14 +77,20 @@ async function onSelectAccount(account: Info) {
   accountEventBus.emit('account-added', { fakeid: account.fakeid });
 }
 
+// 表示同步过程中是否执行了取消操作
 const isCanceled = ref(false);
+const isDeleting = ref(false);
+const isSyncing = ref(false);
+// 当前正在同步的公众号id
+const syncingRowId = ref<string | null>(null);
+
 const timer = ref<number | null>(null);
 
 const syncToTimestamp = getSyncTimestamp();
 
 async function _load(account: Info, begin: number, loadMore: boolean, promise: PromiseInstance) {
   if (isCanceled.value) {
-    isCanceled.value = false;
+    isCanceled.value = false; // 这里需要将状态复位
     promise.reject(new Error('已取消'));
     return;
   }
@@ -105,13 +112,13 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
     return;
   }
 
-  const count = articles.filter(article => article.itemidx === 1).length;
+  const count = articles.filter(article => article.itemidx === 1).length; // 消息数
   begin += count;
 
-  // 加载可用的缓存
+  // 检查是否可以「快进」，也就是存在比 lastArticle 更早的缓存数据
+  // todo: 这里还可以继续优化，防止出现多段不连续的范围
   const lastArticle = articles.at(-1);
   if (lastArticle && lastArticle.create_time < account.last_update_time!) {
-    // 检查是否存在比 lastArticle 更早的缓存数据
     if (await hitCache(account.fakeid, lastArticle.create_time)) {
       const cachedArticles = await getArticleCache(account.fakeid, lastArticle.create_time);
 
@@ -121,13 +128,10 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
       articles.push(...cachedArticles);
     }
   }
+
   if (articles.at(-1)!.create_time < syncToTimestamp) {
     // 已同步到配置的时间范围
-    await updateRow(account.fakeid);
-    syncingRowId.value = null;
-    isSyncing.value = false;
-    promise.resolve(account);
-    return;
+    loadMore = false;
   }
 
   await updateRow(account.fakeid);
@@ -181,34 +185,11 @@ async function loadSelectedAccountArticle() {
     }
     toast.success(`已成功同步 ${rows.length} 个公众号`);
   } catch (e: any) {
-    toast.error('加载失败', e.message);
+    toast.error('同步失败', e.message);
   }
 }
 
-const isDeleting = ref(false);
-const isSyncing = ref(false);
-const syncingRowId = ref<string | null>(null);
-
-let globalRowData: Info[] = [];
-
-const filterParams: IDateFilterParams = {
-  filterOptions: ['lessThan', 'greaterThan', 'inRange'],
-  comparator: (filterLocalDateAtMidnight: Date, cellValue: Date) => {
-    const t = filterLocalDateAtMidnight;
-    if (cellValue < t) {
-      return -1;
-    } else if (cellValue === t) {
-      return 0;
-    } else {
-      return 1;
-    }
-  },
-};
-const booleanColumnFilterParams = {
-  suppressMiniFilter: true,
-  values: [true, false],
-  valueFormatter: (params: ValueFormatterParams) => (params.value ? '是' : '否'),
-};
+let rowData: Info[] = [];
 
 const columnDefs = ref<ColDef[]>([
   {
@@ -239,10 +220,6 @@ const columnDefs = ref<ColDef[]>([
     field: 'nickname',
     cellDataType: 'text',
     filter: 'agTextColumnFilter',
-    filterParams: {
-      filterOptions: ['contains', 'notContains'],
-      maxNumConditions: 1,
-    },
     tooltipField: 'nickname',
     minWidth: 200,
   },
@@ -252,7 +229,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'create_time',
     valueFormatter: p => (p.value ? formatTimeStamp(p.value) : ''),
     filter: 'agDateColumnFilter',
-    filterParams: filterParams,
+    filterParams: createDateColumnFilterParams(),
     filterValueGetter: (params: ValueGetterParams) => {
       return new Date(params.getValue('create_time') * 1000);
     },
@@ -267,7 +244,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'update_time',
     valueFormatter: p => (p.value ? formatTimeStamp(p.value) : ''),
     filter: 'agDateColumnFilter',
-    filterParams: filterParams,
+    filterParams: createDateColumnFilterParams(),
     filterValueGetter: (params: ValueGetterParams) => {
       return new Date(params.getValue('update_time') * 1000);
     },
@@ -308,7 +285,7 @@ const columnDefs = ref<ColDef[]>([
   {
     colId: 'load_percent',
     headerName: '加载进度',
-    valueGetter: params => params.data.count / params.data.total_count,
+    valueGetter: params => (params.data.total_count === 0 ? 0 : params.data.count / params.data.total_count),
     cellDataType: 'number',
     cellRenderer: GridLoadProgress,
     filter: 'agNumberColumnFilter',
@@ -320,7 +297,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'completed',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: booleanColumnFilterParams,
+    filterParams: createBooleanColumnFilterParams('已加载完成', '未加载完成'),
     cellClass: 'flex justify-center items-center',
     headerClass: 'justify-center',
     minWidth: 150,
@@ -455,8 +432,8 @@ function restoreColumnState() {
 }
 
 async function refresh() {
-  globalRowData = await getAllInfo();
-  gridApi.value?.setGridOption('rowData', globalRowData);
+  rowData = await getAllInfo();
+  gridApi.value?.setGridOption('rowData', rowData);
 }
 
 async function updateRow(fakeid: string) {
@@ -517,22 +494,8 @@ async function handleFileChange(evt: Event) {
     try {
       importBtnLoading.value = true;
 
-      // 使用 FileReader 读取文件内容
-      const fileContent = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          if (typeof e.target?.result === 'string') {
-            resolve(e.target.result);
-          } else {
-            reject(new Error('读取文件失败'));
-          }
-        };
-        reader.onerror = () => reject(new Error('读取文件失败'));
-        reader.readAsText(file, 'UTF-8');
-      });
-
       // 解析 JSON
-      const jsonData = JSON.parse(fileContent);
+      const jsonData = JSON.parse(await file.text());
       if (jsonData.usefor !== 'wechat-article-exporter') {
         // 文件格式不正确
         toast.error('导入公众号失败', '导入文件格式不正确，请选择该网站导出的文件进行导入。');
@@ -623,7 +586,7 @@ function exportAccount() {
       <!-- 数据表格 -->
       <ag-grid-vue
         style="width: 100%; height: 100%"
-        :rowData="globalRowData"
+        :rowData="rowData"
         :columnDefs="columnDefs"
         :gridOptions="gridOptions"
         @grid-ready="onGridReady"

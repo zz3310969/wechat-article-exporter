@@ -19,6 +19,7 @@ const loginAccount = useLoginAccount();
  * @param account
  * @param begin
  * @param keyword
+ * @return [文章列表, 是否加载完毕, 文章总数]
  */
 export async function getArticleList(account: Info, begin = 0, keyword = ''): Promise<[AppMsgEx[], boolean, number]> {
   const resp = await request<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
@@ -41,13 +42,13 @@ export async function getArticleList(account: Info, begin = 0, keyword = ''): Pr
     if (!keyword) {
       try {
         await updateArticleCache(account, publish_page);
+
+        if (begin === 0) {
+          await updateLastUpdateTime(account.fakeid);
+        }
       } catch (e) {
         console.error('写入文章缓存失败:', e);
       }
-    }
-
-    if (begin === 0) {
-      await updateLastUpdateTime(account.fakeid);
     }
 
     const articles = publish_list.flatMap(item => {
