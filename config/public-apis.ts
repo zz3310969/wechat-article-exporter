@@ -285,13 +285,13 @@ export const apis = [
   },
   {
     name: '查询公众号主体信息 (beta)',
-    description: '根据公众号的 biz 查询主体信息',
+    description: '根据公众号的 fakeid 查询主体信息',
     url: '/api/public/beta/authorinfo',
     method: 'GET',
     params: [
       {
         label: '公众号id',
-        name: 'biz',
+        name: 'fakeid',
         location: 'query',
         required: true,
         default: 'N/A',
@@ -304,21 +304,21 @@ export const apis = [
         exportkey_token: '',
         ret: 0,
       },
-      identity_name: '专心保险经纪有限公司',
+      identity_name: '上海市总工会',
       is_verify: 2,
-      original_article_count: 3585,
+      original_article_count: 262,
     },
     remark: '此接口不需要 API 密钥',
   },
   {
     name: '查询公众号主体信息 (beta)',
-    description: '根据公众号的 biz 查询主体信息',
+    description: '根据公众号的 fakeid 查询主体信息',
     url: '/api/public/beta/aboutbiz',
     method: 'GET',
     params: [
       {
         label: '公众号id',
-        name: 'biz',
+        name: 'fakeid',
         location: 'query',
         required: true,
         default: 'N/A',
@@ -337,12 +337,92 @@ export const apis = [
     ],
     responseSample: {
       base_resp: {
-        exportkey_token: '',
         ret: 0,
       },
-      identity_name: '专心保险经纪有限公司',
-      is_verify: 2,
-      original_article_count: 3585,
+      data: {
+        intro: '做一个有存在意义的账号~这里是上海市总工会，欢迎回家！',
+        wechat: 'shengongshewx',
+        type: '其他组织',
+        org: '上海市总工会',
+        auth_3rd_list: [
+          {
+            principal: '秀米',
+            userName: 'gh_d483129a0f29@app',
+            appId: 'wx19e904724550a41f',
+            relativeURL:
+              'pages/profile/index?enterpriseOpenId=sq_o0CFMs_h0aKah0GsYaZZ3akyF8yo&amp;from=profile&amp;fromAppId=wx63d70210fcc108fd&amp;componentAppId=wx7d88eb47efa1e610',
+            category: [
+              {
+                id: 7,
+                name: '群发与通知',
+                desc: '基于该权限可帮助公众号进行群发消息、文章管理以及发送模板消息',
+              },
+              {
+                id: 11,
+                name: '素材管理',
+                desc: '基于该权限可帮助公众号管理图文等多媒体素材以及多媒体文件管理',
+              },
+            ],
+          },
+          {
+            principal: '壹伴',
+            userName: 'gh_d483129a0f29@app',
+            appId: 'wx19e904724550a41f',
+            relativeURL:
+              'pages/profile/index?enterpriseOpenId=sq_omefmt3a0XFwUA1PfscJj7_n9fak&amp;from=profile&amp;fromAppId=wx63d70210fcc108fd&amp;componentAppId=wx3f5f5ddf688562c0',
+            category: [
+              {
+                id: 1,
+                name: '消息管理',
+                desc: '基于该权限可帮助公众号接收用户消息，进行人工客服回复或自动回复',
+              },
+              {
+                id: 2,
+                name: '用户管理',
+                desc: '帮助公众号获取用户信息，进行用户管理',
+              },
+              {
+                id: 3,
+                name: '公众号账号信息服务',
+                desc: '基于该权限可帮助公众号设置及展示公众号信息、配置账号信息、生成带参二维码并配置跳转小程序等账号维度的功能',
+              },
+              {
+                id: 4,
+                name: '网页服务',
+                desc: '基于该权限可帮助公众实现H5网页服务',
+              },
+              {
+                id: 6,
+                name: '微信多客服',
+                desc: '基于该权限可帮助公众号使用微信多客服功能',
+              },
+              {
+                id: 7,
+                name: '群发与通知',
+                desc: '基于该权限可帮助公众号进行群发消息、文章管理以及发送模板消息',
+              },
+              {
+                id: 11,
+                name: '素材管理',
+                desc: '基于该权限可帮助公众号管理图文等多媒体素材以及多媒体文件管理',
+              },
+              {
+                id: 15,
+                name: '自定义菜单管理',
+                desc: '帮助公众号使用自定义菜单',
+              },
+            ],
+          },
+        ],
+        ip_wording: {
+          countryName: '中国',
+          countryId: '156',
+          provinceName: '上海',
+          provinceId: '',
+          cityName: '',
+          cityId: '',
+        },
+      },
     },
     remark: '此接口不需要 API 密钥',
   },

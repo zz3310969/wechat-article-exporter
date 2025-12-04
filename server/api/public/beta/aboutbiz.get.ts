@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import { isDev } from '~/config';
 
 interface AboutBizQuery {
-  biz: string;
+  fakeid: string;
   key: string;
 }
 
@@ -11,10 +11,10 @@ const USER_AGENT =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) MicroMessenger/8.0.64(0x18004034) Language/zh_CN';
 
 export default defineEventHandler(async event => {
-  const { biz, key } = getQuery<AboutBizQuery>(event);
+  const { fakeid, key } = getQuery<AboutBizQuery>(event);
 
   const query: Record<string, string> = {
-    __biz: biz,
+    __biz: fakeid,
     wx_header: process.env.NUXT_WECHAT_ABOUT_BIZ_WX_HEADER || '',
   };
 
@@ -30,7 +30,7 @@ export default defineEventHandler(async event => {
 
   // 写入文件方便调试
   if (isDev) {
-    fs.writeFileSync(`samples/aboutbiz/biz-${biz}.html`, rawHtml);
+    fs.writeFileSync(`samples/aboutbiz/biz-${fakeid}.html`, rawHtml);
   }
 
   const result = extractInfo(rawHtml);
