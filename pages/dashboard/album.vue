@@ -124,6 +124,7 @@
 import { vElementVisibility } from '@vueuse/components';
 import { ArrowDownNarrowWide, ArrowUpNarrowWide, Loader } from 'lucide-vue-next';
 import { sleep } from '#shared/utils/helpers';
+import { request } from '#shared/utils/request';
 import AccountSelectorForAlbum from '~/components/selector/AccountSelectorForAlbum.vue';
 import { useDownloadAlbum } from '~/composables/useBatchDownload';
 import { websiteName } from '~/config';
@@ -132,7 +133,6 @@ import type { AppMsgAlbumResult, ArticleItem, BaseInfo } from '~/types/album';
 import type { AppMsgAlbumInfo, DownloadableArticle } from '~/types/types';
 import { gotoLink } from '~/utils';
 import { formatAlbumTime } from '~/utils/album';
-import { request } from '#shared/utils/request';
 
 useHead({
   title: `合集下载 | ${websiteName}`,

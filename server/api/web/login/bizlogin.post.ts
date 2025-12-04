@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
+import { request } from '#shared/utils/request';
 import { getCookieFromResponse, getCookiesFromRequest } from '~/server/utils/CookieStore';
 import { proxyMpRequest } from '~/server/utils/proxy-request';
-import { request } from '#shared/utils/request';
 
 export default defineEventHandler(async event => {
   const cookie = getCookiesFromRequest(event);

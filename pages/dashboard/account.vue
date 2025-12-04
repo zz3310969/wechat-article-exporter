@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { AG_GRID_LOCALE_CN } from '@ag-grid-community/locale';
-import { useEventBus } from '@vueuse/core';
 import {
   type ColDef,
   type GetRowIdParams,
@@ -15,10 +14,9 @@ import {
   type ValueGetterParams,
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
-import dayjs from 'dayjs';
 import { formatTimeStamp } from '#shared/utils/helpers';
 import { getArticleList } from '~/apis';
-import GlobalSearchAccount from '~/components/global/SearchAccount.vue';
+import GlobalSearchAccountDialog from '~/components/global/SearchAccountDialog.vue';
 import GridAccountActions from '~/components/grid/AccountActions.vue';
 import GridLoading from '~/components/grid/Loading.vue';
 import GridLoadProgress from '~/components/grid/LoadProgress.vue';
@@ -26,12 +24,12 @@ import GridNoRows from '~/components/grid/NoRows.vue';
 import ConfirmModal from '~/components/modal/Confirm.vue';
 import LoginModal from '~/components/modal/Login.vue';
 import toastFactory from '~/composables/toast';
+import useLoginCheck from '~/composables/useLoginCheck';
 import { IMAGE_PROXY, websiteName } from '~/config';
 import { deleteAccountData } from '~/store/v2';
 import { getArticleCache, hitCache } from '~/store/v2/article';
 import { getAllInfo, getInfoCache, type Info, importInfos } from '~/store/v2/info';
 import type { AccountManifest } from '~/types/account';
-import type { AccountEvent } from '~/types/events';
 import type { Preferences } from '~/types/preferences';
 import { exportAccountJsonFile } from '~/utils/exporter';
 
@@ -46,35 +44,27 @@ interface PromiseInstance {
 
 const toast = toastFactory();
 const modal = useModal();
+const { checkLogin } = useLoginCheck();
 
 const { getSyncTimestamp } = useSyncDeadline();
 
 const preferences = usePreferences();
-const loginAccount = useLoginAccount();
+
 // 账号事件总线，用于和 Credentials 面板保持列表同步
-const accountEventBus = useEventBus<AccountEvent>('account-event');
-const stopAccountEvent = accountEventBus.on(event => {
-  if (event.type === 'account-added' || event.type === 'account-removed') {
+const { accountEventBus } = useAccountEventBus();
+accountEventBus.on(event => {
+  if (event === 'account-added' || event === 'account-removed') {
     refresh();
   }
 });
 
-const searchAccountRef = ref<typeof GlobalSearchAccount | null>(null);
-
-// 检查是否有登录信息
-function checkLogin() {
-  if (loginAccount.value === null) {
-    modal.open(LoginModal);
-    return false;
-  }
-  return true;
-}
+const searchAccountDialogRef = ref<typeof GlobalSearchAccountDialog | null>(null);
 
 const addBtnLoading = ref(false);
 function addAccount() {
   if (!checkLogin()) return;
 
-  searchAccountRef.value!.open();
+  searchAccountDialogRef.value!.open();
 }
 async function onSelectAccount(account: Info) {
   addBtnLoading.value = true;
@@ -83,7 +73,7 @@ async function onSelectAccount(account: Info) {
   addBtnLoading.value = false;
   toast.success('公众号添加成功', `已成功添加公众号【${account.nickname}】，并拉取了第一页文章数据`);
   // 通知 Credentials 面板按钮立即变更为“已添加”
-  accountEventBus.emit({ type: 'account-added', fakeid: account.fakeid });
+  accountEventBus.emit('account-added', { fakeid: account.fakeid });
 }
 
 const isCanceled = ref(false);
@@ -504,7 +494,7 @@ function deleteSelectedAccounts() {
         isDeleting.value = true;
         await deleteAccountData(ids);
         // 通知 Credentials 面板这些公众号已被移除
-        ids.forEach(fakeid => accountEventBus.emit({ type: 'account-removed', fakeid }));
+        ids.forEach(fakeid => accountEventBus.emit('account-removed', { fakeid: fakeid }));
       } finally {
         isDeleting.value = false;
         await refresh();
@@ -512,10 +502,6 @@ function deleteSelectedAccounts() {
     },
   });
 }
-
-onBeforeUnmount(() => {
-  stopAccountEvent();
-});
 
 // 导入公众号
 const fileRef = ref<HTMLInputElement | null>(null);
@@ -650,6 +636,6 @@ function exportAccount() {
     </div>
 
     <!-- 添加公众号弹框 -->
-    <GlobalSearchAccount ref="searchAccountRef" @select:account="onSelectAccount" />
+    <GlobalSearchAccountDialog ref="searchAccountDialogRef" @select:account="onSelectAccount" />
   </div>
 </template>

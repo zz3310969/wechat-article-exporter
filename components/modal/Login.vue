@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Loader, X } from 'lucide-vue-next';
-import type { LoginAccount, ScanLoginResult, StartLoginResult } from '~/types/types';
 import { request } from '#shared/utils/request';
+import type { LoginAccount, ScanLoginResult, StartLoginResult } from '~/types/types';
 
 const modal = useModal();
 

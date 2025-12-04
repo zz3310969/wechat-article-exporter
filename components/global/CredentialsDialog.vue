@@ -125,15 +125,14 @@
 </template>
 
 <script setup lang="ts">
-import { useEventBus } from '@vueuse/core';
 import dayjs from 'dayjs';
 import { getArticleList } from '~/apis';
 import LoginModal from '~/components/modal/Login.vue';
 import toastFactory from '~/composables/toast';
+import useLoginCheck from '~/composables/useLoginCheck';
 import { CREDENTIAL_API_HOST, CREDENTIAL_LIVE_MINUTES } from '~/config';
 import { getInfoCache, type Info } from '~/store/v2/info';
 import type { ParsedCredential } from '~/types/credential';
-import type { AccountEvent } from '~/types/events';
 
 export type CredentialState = 'active' | 'inactive' | 'warning';
 
@@ -155,6 +154,8 @@ const tabs = [
   },
 ];
 
+const { checkLogin } = useLoginCheck();
+
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 for (const item of credentials.value) {
   item.valid = Date.now() < item.timestamp + 1000 * 60 * CREDENTIAL_LIVE_MINUTES;
@@ -163,18 +164,8 @@ const validCredentialCount = computed(() => credentials.value.filter(c => c.vali
 const pendingCredentialCount = computed(() => credentials.value.filter(c => c.valid && !c.added).length);
 const toast = toastFactory();
 const modal = useModal();
-const loginAccount = useLoginAccount();
-const addingBiz = ref<string | null>(null);
-// 账号事件总线，用于和管理页面同步添加/删除状态
-const accountEventBus = useEventBus<AccountEvent>('account-event');
 
-function checkLogin() {
-  if (loginAccount.value === null) {
-    modal.open(LoginModal);
-    return false;
-  }
-  return true;
-}
+const addingBiz = ref<string | null>(null);
 
 async function refreshCredentialAddedState() {
   const pending = credentials.value.map(async credential => {
@@ -185,14 +176,15 @@ async function refreshCredentialAddedState() {
 }
 
 // 监听账号事件，及时更新当前凭据项的按钮状态
-const stopAccountEvent = accountEventBus.on(event => {
-  if (event.type === 'account-added') {
-    const target = credentials.value.find(item => item.biz === event.fakeid);
+const { accountEventBus } = useAccountEventBus();
+accountEventBus.on((event, payload) => {
+  if (event === 'account-added') {
+    const target = credentials.value.find(item => item.biz === payload?.fakeid);
     if (target) {
       target.added = true;
     }
-  } else if (event.type === 'account-removed') {
-    const target = credentials.value.find(item => item.biz === event.fakeid);
+  } else if (event === 'account-removed') {
+    const target = credentials.value.find(item => item.biz === payload?.fakeid);
     if (target) {
       target.added = false;
     }
@@ -262,7 +254,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  stopAccountEvent();
   clearRetryTimer();
 });
 
@@ -484,7 +475,7 @@ async function addAccount(credential: ParsedCredential) {
     credential.added = true;
     toast.success('公众号添加成功', `已成功添加公众号【${nickname}】`);
     // 通知其他视图（如公众号管理列表）立即刷新
-    accountEventBus.emit({ type: 'account-added', fakeid: credential.biz });
+    accountEventBus.emit('account-added', { fakeid: credential.biz });
   } catch (error: any) {
     if (error?.message === 'session expired') {
       modal.open(LoginModal);
