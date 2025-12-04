@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { getCookieFromResponse, getCookiesFromRequest } from '~/server/utils/CookieStore';
 import { proxyMpRequest } from '~/server/utils/proxy-request';
+import { request } from '#shared/utils/request';
 
 export default defineEventHandler(async event => {
   const cookie = getCookiesFromRequest(event);
@@ -38,7 +39,7 @@ export default defineEventHandler(async event => {
     };
   }
 
-  const { nick_name, head_img } = await $fetch(`/api/web/mp/info`, {
+  const { nick_name, head_img } = await request(`/api/web/mp/info`, {
     headers: {
       Cookie: `auth-key=${authKey}`,
     },

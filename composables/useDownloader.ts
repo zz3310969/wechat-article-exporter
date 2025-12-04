@@ -1,6 +1,6 @@
+import { formatElapsedTime } from '#shared/utils/helpers';
 import toastFactory from '~/composables/toast';
 import type { Metadata } from '~/store/v2/metadata';
-import { formatElapsedTime } from '~/utils';
 import { Downloader } from '~/utils/download/Downloader';
 import type { DownloaderStatus } from '~/utils/download/types';
 

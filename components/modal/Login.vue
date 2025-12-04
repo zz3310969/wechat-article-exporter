@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Loader, X } from 'lucide-vue-next';
 import type { LoginAccount, ScanLoginResult, StartLoginResult } from '~/types/types';
+import { request } from '#shared/utils/request';
 
 const modal = useModal();
 
@@ -30,7 +31,7 @@ function onClose() {
  */
 async function newLoginSession() {
   const sid = new Date().getTime().toString() + Math.floor(Math.random() * 100);
-  const resp = await $fetch<StartLoginResult>(`/api/web/login/session/${sid}`, { method: 'POST' });
+  const resp = await request<StartLoginResult>(`/api/web/login/session/${sid}`, { method: 'POST' });
   if (!resp || !resp.base_resp || resp.base_resp.ret !== 0) {
     throw new Error(`${resp?.base_resp?.err_msg || '获取登录会话失败'}`);
   }
@@ -62,9 +63,7 @@ function _check() {
 
 // 检查二维码扫描状态
 async function checkQrcodeStatus() {
-  const resp = await $fetch<ScanLoginResult>('/api/web/login/scan', {
-    method: 'GET',
-  });
+  const resp = await request<ScanLoginResult>('/api/web/login/scan');
   if (resp && resp.base_resp && resp.base_resp.ret === 0) {
     switch (resp.status) {
       case 0:
@@ -104,7 +103,7 @@ async function checkQrcodeStatus() {
 async function bizLogin() {
   try {
     loading.value = true;
-    const resp = await $fetch<LoginAccount>('/api/web/login/bizlogin', {
+    const resp = await request<LoginAccount>('/api/web/login/bizlogin', {
       method: 'POST',
     });
     if (resp.err) {

@@ -4,6 +4,7 @@ import LoginModal from '~/components/modal/Login.vue';
 import StorageUsage from '~/components/StorageUsage.vue';
 import { IMAGE_PROXY } from '~/config';
 import type { LogoutResponse } from '~/types/types';
+import { request } from '#shared/utils/request';
 
 const loginAccount = useLoginAccount();
 const modal = useModal();
@@ -78,7 +79,7 @@ const logoutBtnLoading = ref(false);
 
 async function logout() {
   logoutBtnLoading.value = true;
-  const { statusCode, statusText } = await $fetch<LogoutResponse>('/api/web/mp/logout');
+  const { statusCode, statusText } = await request<LogoutResponse>('/api/web/mp/logout');
   if (statusCode === 200) {
     loginAccount.value = null;
   } else {

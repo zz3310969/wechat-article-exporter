@@ -1,8 +1,8 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { formatItemShowType, formatTimeStamp } from '#shared/utils/helpers';
 import type { AccountManifest } from '~/types/account';
 import type { AppMsgEx } from '~/types/types';
-import { formatTimeStamp, ITEM_SHOW_TYPE } from '~/utils';
 import type { ArticleMetadata } from '~/utils/download/types';
 
 export type ExcelExportEntity = AppMsgEx &
@@ -58,7 +58,7 @@ export async function export2ExcelFile(data: ExcelExportEntity[], filename: stri
       commentNum: item.commentNum,
       author_name: item.author_name,
       copyright: item.copyright_stat === 1 && item.copyright_type === 1 ? '原创' : '',
-      item_show_type: ITEM_SHOW_TYPE[item.item_show_type],
+      item_show_type: formatItemShowType(item.item_show_type),
       album: item.appmsg_album_infos.map(album => '#' + album.title).join(' '),
       content: item.content,
     });

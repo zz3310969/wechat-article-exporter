@@ -1,46 +1,13 @@
-import dayjs from 'dayjs';
 import JSZip from 'jszip';
 import mime from 'mime';
+import { formatTimeStamp, sleep } from '#shared/utils/helpers';
+import { request } from '#shared/utils/request';
 import { getComment } from '~/apis';
 import { getAssetCache, updateAssetCache } from '~/store/v2/assets';
 import type { DownloadableArticle } from '~/types/types';
 import type { AudioResource, VideoPageInfo } from '~/types/video';
 import * as pool from '~/utils/pool';
 import { extractCommentId } from './comment';
-
-export function formatTimeStamp(timestamp: number) {
-  return dayjs.unix(timestamp).format('YYYY-MM-DD HH:mm:ss');
-}
-
-export const ITEM_SHOW_TYPE: Record<number, string> = {
-  0: '普通图文',
-  5: '视频分享',
-  6: '音乐分享',
-  7: '音频分享',
-  8: '图片分享',
-  10: '文本分享',
-  11: '文章分享',
-  17: '短文',
-};
-
-export function formatItemShowType(type: number) {
-  return ITEM_SHOW_TYPE[type] || '未识别';
-}
-
-// 工具函数：将时长字符串转为秒数
-export function durationToSeconds(duration: string | undefined) {
-  if (!duration) return 0;
-  const [min, sec] = duration.split(':').map(Number);
-  return min * 60 + sec;
-}
-
-export function formatNumber(num: any): string {
-  if (typeof num === 'number') {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  } else {
-    return num.toString();
-  }
-}
 
 /**
  * 使用代理下载资源
@@ -49,7 +16,7 @@ export function formatNumber(num: any): string {
  * @param withCredential
  * @param timeout 超时时间(单位: 秒)，默认 30
  */
-export async function downloadAssetWithProxy<T extends Blob | string>(
+async function downloadAssetWithProxy<T extends Blob | string>(
   url: string,
   proxy: string | undefined,
   withCredential = false,
@@ -67,8 +34,7 @@ export async function downloadAssetWithProxy<T extends Blob | string>(
     : url;
   targetURL = targetURL.replace(/^http:\/\//, 'https://');
 
-  return await $fetch<T>(targetURL, {
-    retry: 0,
+  return await request<T>(targetURL, {
     timeout: timeout * 1000,
     referrerPolicy: 'unsafe-url',
   });
@@ -79,7 +45,7 @@ export async function downloadAssetWithProxy<T extends Blob | string>(
  * @param articleURL
  * @param title
  */
-export async function downloadArticleHTML(articleURL: string, title?: string) {
+async function downloadArticleHTML(articleURL: string, title?: string) {
   let html = '';
   const parser = new DOMParser();
 
@@ -758,7 +724,7 @@ export async function packHTMLAssets(fakeid: string, html: string, title: string
     if (cachedAsset) {
       stylesheetFile = cachedAsset.file;
     } else {
-      const stylesheet = await $fetch<string>(url, { retryDelay: 2000 });
+      const stylesheet = await request<string>(url, { retry: 1, retryDelay: 2000 });
       stylesheetFile = new Blob([stylesheet], { type: 'text/css' });
       await updateAssetCache({ url: url, file: stylesheetFile, fakeid: fakeid });
     }
@@ -877,7 +843,7 @@ export async function packHTMLAssets(fakeid: string, html: string, title: string
     if (mpCommonMpAudioJsCache) {
       scriptFile = mpCommonMpAudioJsCache.file;
     } else {
-      scriptFile = await $fetch<Blob>(url, { retryDelay: 500 });
+      scriptFile = await request<Blob>(url, { retry: 1, retryDelay: 500 });
       await updateAssetCache({ url: url, file: scriptFile, fakeid: fakeid });
     }
     zip.file(`assets/mp-common-mpaudio.js`, scriptFile);
@@ -930,59 +896,9 @@ export function gotoLink(url: string) {
   window.open(url);
 }
 
-export function formatElapsedTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  let result = '';
-  if (hours > 0) {
-    result += `${hours}小时`;
-  }
-  if (minutes > 0) {
-    result += `${minutes}分`;
-  }
-  if (secs > 0 || result === '') {
-    result += `${secs}秒`;
-  }
-  return result;
-}
-
-export function maxLen(text: string, max = 35): string {
-  if (text.length > max) {
-    return text.slice(0, max) + '...';
-  }
-  return text;
-}
-
-export function uniqueStrings(arr: string[]): string[] {
-  return [...new Set(arr)];
-}
-
-export function sleep(ms: number = 1000): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function timeout(ms: number = 1000): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Request timeout')), ms);
-  });
-}
-
-export function throwException(message: string) {
-  throw new Error(message);
-}
-
 // 计算最佳并发量
 export function bestConcurrencyCount(proxyCount: number): number {
   return proxyCount > 5 ? proxyCount - 3 : Math.max(proxyCount - 2, 1);
-}
-
-// 过滤文件名中的非法字符
-export function filterInvalidFilenameChars(input: string): string {
-  // 只保留中文字符、英文字符、数字
-  const regex = /[^\u4e00-\u9fa5a-zA-Z0-9()（）]/g;
-  return input.replace(regex, '_').slice(0, 100).trim();
 }
 
 // 检测用户浏览器是否为 Chrome

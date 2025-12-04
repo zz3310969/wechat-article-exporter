@@ -16,6 +16,7 @@ import {
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
 import dayjs from 'dayjs';
+import { formatTimeStamp } from '#shared/utils/helpers';
 import { getArticleList } from '~/apis';
 import GlobalSearchAccount from '~/components/global/SearchAccount.vue';
 import GridAccountActions from '~/components/grid/AccountActions.vue';
@@ -32,7 +33,6 @@ import { getAllInfo, getInfoCache, type Info, importInfos } from '~/store/v2/inf
 import type { AccountManifest } from '~/types/account';
 import type { AccountEvent } from '~/types/events';
 import type { Preferences } from '~/types/preferences';
-import { formatTimeStamp } from '~/utils';
 import { exportAccountJsonFile } from '~/utils/exporter';
 
 useHead({

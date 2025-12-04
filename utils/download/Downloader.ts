@@ -1,3 +1,4 @@
+import { throwException, timeout } from '#shared/utils/helpers';
 import usePreferences from '~/composables/usePreferences';
 import { getArticleByLink } from '~/store/v2/article';
 import { updateCommentCache } from '~/store/v2/comment';
@@ -9,7 +10,6 @@ import { updateMetadataCache } from '~/store/v2/metadata';
 import type { CommentResponse, ReplyResponse } from '~/types/comment';
 import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
-import { throwException, timeout } from '~/utils';
 import { BaseDownload } from '~/utils/download/BaseDownload';
 import type { DownloadOptions } from './types';
 

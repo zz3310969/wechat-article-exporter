@@ -1,3 +1,5 @@
+import { request } from '#shared/utils/request';
+
 interface UrlQuery {
   url: string;
 }
@@ -5,7 +7,7 @@ interface UrlQuery {
 export default defineEventHandler(async event => {
   let { url } = getQuery<UrlQuery>(event);
 
-  const name = await $fetch('/api/web/misc/accountname?url=' + encodeURIComponent(url));
+  const name = await request('/api/web/misc/accountname?url=' + encodeURIComponent(url));
   if (!name) {
     return {
       base_resp: {
@@ -15,7 +17,7 @@ export default defineEventHandler(async event => {
     };
   }
 
-  const originalResp = await $fetch(`/api/web/mp/searchbiz?keyword=${name}&size=20`, {
+  const originalResp = await request(`/api/web/mp/searchbiz?keyword=${name}&size=20`, {
     headers: {
       'X-Auth-Key': getHeader(event, 'X-Auth-Key')!,
       Cookie: getHeader(event, 'Cookie')!,

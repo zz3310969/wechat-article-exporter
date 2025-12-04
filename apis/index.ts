@@ -1,5 +1,5 @@
+import { request } from '#shared/utils/request';
 import { ACCOUNT_LIST_PAGE_SIZE, ARTICLE_LIST_PAGE_SIZE } from '~/config';
-import { updateAPICache } from '~/store/v2/api';
 import { updateArticleCache } from '~/store/v2/article';
 import { type Info, updateLastUpdateTime } from '~/store/v2/info';
 import type { CommentResponse } from '~/types/comment';
@@ -21,24 +21,8 @@ const loginAccount = useLoginAccount();
  * @param keyword
  */
 export async function getArticleList(account: Info, begin = 0, keyword = ''): Promise<[AppMsgEx[], boolean, number]> {
-  const resp = await $fetch<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
-    method: 'GET',
+  const resp = await request<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
     query: {
-      id: account.fakeid,
-      begin: begin,
-      size: ARTICLE_LIST_PAGE_SIZE,
-      keyword: keyword,
-    },
-    retry: 0,
-  });
-
-  // 记录 api 调用
-  await updateAPICache({
-    name: 'appmsgpublish',
-    account: loginAccount.value?.nickname,
-    call_time: new Date().getTime(),
-    is_normal: resp.base_resp.ret === 0 || resp.base_resp.ret === 200003,
-    payload: {
       id: account.fakeid,
       begin: begin,
       size: ARTICLE_LIST_PAGE_SIZE,
@@ -53,13 +37,12 @@ export async function getArticleList(account: Info, begin = 0, keyword = ''): Pr
     // 返回的文章数量为0就表示已加载完毕
     const isCompleted = publish_list.length === 0;
 
-    // 更新缓存，注意搜索的结果不能写入缓存
+    // 更新缓存，注意带有关键字搜索的结果不能写入缓存
     if (!keyword) {
       try {
         await updateArticleCache(account, publish_page);
       } catch (e) {
-        console.warn('缓存失败');
-        console.error(e);
+        console.error('写入文章缓存失败:', e);
       }
     }
 
@@ -86,23 +69,8 @@ export async function getArticleList(account: Info, begin = 0, keyword = ''): Pr
  * @param keyword
  */
 export async function getAccountList(begin = 0, keyword = ''): Promise<[AccountInfo[], boolean]> {
-  const resp = await $fetch<SearchBizResponse>('/api/web/mp/searchbiz', {
-    method: 'GET',
+  const resp = await request<SearchBizResponse>('/api/web/mp/searchbiz', {
     query: {
-      begin: begin,
-      size: ACCOUNT_LIST_PAGE_SIZE,
-      keyword: keyword,
-    },
-    retry: 0,
-  });
-
-  // 记录 api 调用
-  await updateAPICache({
-    name: 'searchbiz',
-    account: loginAccount.value?.nickname,
-    call_time: new Date().getTime(),
-    is_normal: resp.base_resp.ret === 0 || resp.base_resp.ret === 200003,
-    payload: {
       begin: begin,
       size: ACCOUNT_LIST_PAGE_SIZE,
       keyword: keyword,
@@ -135,13 +103,11 @@ export async function getComment(commentId: string) {
       console.warn('credentials not set');
       return null;
     }
-    const response = await $fetch<CommentResponse>('/api/web/misc/comment', {
-      method: 'get',
+    const response = await request<CommentResponse>('/api/web/misc/comment', {
       query: {
         comment_id: commentId,
         ...credentials,
       },
-      retry: 0,
     });
     if (response.base_resp.ret === 0) {
       return response;

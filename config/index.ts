@@ -58,3 +58,17 @@ export const USER_AGENT =
  * 微信公众号上线时间 2012-08-23
  */
 export const MP_ORIGIN_TIMESTAMP = dayjs('2012-08-23 00:00:00').unix();
+
+/**
+ * 文章显示类型
+ */
+export const ITEM_SHOW_TYPE: Record<number, string> = {
+  0: '普通图文',
+  5: '视频分享',
+  6: '音乐分享',
+  7: '音频分享',
+  8: '图片分享',
+  10: '文本分享',
+  11: '文章分享',
+  17: '短文',
+};

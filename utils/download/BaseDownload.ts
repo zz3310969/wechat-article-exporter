@@ -1,8 +1,9 @@
+import { sleep, timeout } from '#shared/utils/helpers';
 import usePreferences from '~/composables/usePreferences';
 import { PUBLIC_PROXY_LIST } from '~/config/public-proxy';
 import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
-import { bestConcurrencyCount, sleep, timeout } from '~/utils';
+import { bestConcurrencyCount } from '~/utils';
 import { extractCommentId } from '~/utils/comment';
 import { DEFAULT_OPTIONS } from './constants';
 import { ProxyManager } from './ProxyManager';

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { sleep } from '#shared/utils/helpers';
+import { request } from '#shared/utils/request';
 import CodeSegment from '~/components/api/CodeSegment.vue';
 import toastFactory from '~/composables/toast';
 import type { GetAuthKeyResult } from '~/types/types';
@@ -11,7 +13,7 @@ async function getAuthKey() {
   loading.value = true;
   try {
     await sleep(1000);
-    const resp = await $fetch<GetAuthKeyResult>(`/api/public/v1/authkey`);
+    const resp = await request<GetAuthKeyResult>(`/api/public/v1/authkey`);
     if (resp.code === 0) {
       authKey.value = resp.data;
     } else {

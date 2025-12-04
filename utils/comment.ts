@@ -1,7 +1,7 @@
+import { formatTimeStamp } from '#shared/utils/helpers';
 import { getCommentCache } from '~/store/v2/comment';
 import { getCommentReplyCache } from '~/store/v2/comment_reply';
 import { getMetadataCache } from '~/store/v2/metadata';
-import { formatTimeStamp } from '~/utils';
 
 /**
  * 从文章 HTML 中提取 comment_id。
@@ -149,7 +149,7 @@ export async function renderComments(url: string) {
   return commentHTML;
 }
 
-// 获取文章的评论数据
+// 从本地缓存获取文章的评论数据
 export async function getArticleComments(url: string) {
   let elected_comments = [];
   const commentCache = await getCommentCache(url);

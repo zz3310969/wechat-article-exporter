@@ -1,16 +1,15 @@
 import dayjs from 'dayjs';
 import mime from 'mime';
 import TurndownService from 'turndown';
+import { filterInvalidFilenameChars, sleep } from '#shared/utils/helpers';
 import usePreferences from '~/composables/usePreferences';
 import { getArticleByLink } from '~/store/v2/article';
-import { getDebugInfo } from '~/store/v2/debug';
 import { getHtmlCache, type HtmlAsset } from '~/store/v2/html';
 import { getAccountNameByFakeid, getAllInfo, type Info } from '~/store/v2/info';
 import { getMetadataCache } from '~/store/v2/metadata';
 import { getResourceCache, updateResourceCache } from '~/store/v2/resource';
 import { getResourceMapCache, updateResourceMapCache } from '~/store/v2/resource-map';
 import type { Preferences } from '~/types/preferences';
-import { filterInvalidFilenameChars, sleep } from '~/utils';
 import { getArticleComments, renderComments } from '~/utils/comment';
 import { BaseDownload } from '~/utils/download/BaseDownload';
 import { type ExcelExportEntity, export2ExcelFile, export2JsonFile } from '~/utils/exporter';

@@ -12,6 +12,13 @@ import {
 import { AgGridVue } from 'ag-grid-vue3';
 import type { PreviewArticle } from '#components';
 import { readBlob } from '#shared/utils';
+import {
+  durationToSeconds,
+  formatElapsedTime,
+  formatItemShowType,
+  formatTimeStamp,
+  sleep,
+} from '#shared/utils/helpers';
 import { normalizeHtml } from '#shared/utils/html';
 import GridActions from '~/components/grid/Actions.vue';
 import GridAlbum from '~/components/grid/Album.vue';
@@ -21,14 +28,13 @@ import GridNoRows from '~/components/grid/NoRows.vue';
 import GridStatusBar from '~/components/grid/StatusBar.vue';
 import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
 import { isDev } from '~/config';
-import { articleDeleted, getArticleByLink, getArticleCache } from '~/store/v2/article';
+import { articleDeleted, getArticleCache } from '~/store/v2/article';
 import { getCommentCache } from '~/store/v2/comment';
 import { getHtmlCache } from '~/store/v2/html';
 import { type Info } from '~/store/v2/info';
 import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { Preferences } from '~/types/preferences';
 import type { AppMsgEx } from '~/types/types';
-import { durationToSeconds, formatElapsedTime, formatTimeStamp, ITEM_SHOW_TYPE, sleep } from '~/utils';
 import { Downloader } from '~/utils/download/Downloader';
 import { Exporter } from '~/utils/download/Exporter';
 import type { ArticleMetadata, DownloaderStatus, ExporterStatus } from '~/utils/download/types';
@@ -227,10 +233,10 @@ const columnDefs = ref<ColDef[]>([
   {
     headerName: '文章类型',
     field: 'item_show_type',
-    valueFormatter: p => ITEM_SHOW_TYPE[p.value] || '未识别',
+    valueFormatter: p => formatItemShowType(p.value),
     filter: 'agSetColumnFilter',
     filterParams: {
-      valueFormatter: (p: ValueFormatterParams) => ITEM_SHOW_TYPE[p.value] || '未识别',
+      valueFormatter: (p: ValueFormatterParams) => formatItemShowType(p.value),
     },
     minWidth: 150,
     initialHide: true,
