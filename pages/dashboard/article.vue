@@ -7,6 +7,7 @@ import type {
   GridOptions,
   GridReadyEvent,
   ICellRendererParams,
+  SelectionChangedEvent,
   ValueFormatterParams,
   ValueGetterParams,
 } from 'ag-grid-community';
@@ -14,13 +15,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import { defu } from 'defu';
 import type { PreviewArticle } from '#components';
 import { readBlob } from '#shared/utils';
-import {
-  durationToSeconds,
-  formatElapsedTime,
-  formatItemShowType,
-  formatTimeStamp,
-  sleep,
-} from '#shared/utils/helpers';
+import { durationToSeconds, formatItemShowType, formatTimeStamp, sleep } from '#shared/utils/helpers';
 import { normalizeHtml } from '#shared/utils/html';
 import GridActions from '~/components/grid/Actions.vue';
 import GridAlbum from '~/components/grid/Album.vue';
@@ -36,9 +31,7 @@ import { type Info } from '~/store/v2/info';
 import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { Preferences } from '~/types/preferences';
 import type { AppMsgEx } from '~/types/types';
-import { Downloader } from '~/utils/download/Downloader';
-import { Exporter } from '~/utils/download/Exporter';
-import type { ArticleMetadata, DownloaderStatus, ExporterStatus } from '~/utils/download/types';
+import type { ArticleMetadata } from '~/utils/download/types';
 import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
 
 useHead({
@@ -329,8 +322,6 @@ function onFilterChanged(event: FilterChangedEvent) {
 const preferences = usePreferences();
 const hideDeleted = computed(() => (preferences.value as unknown as Preferences).hideDeleted);
 
-const toast = useToast();
-
 const previewArticleRef = ref<typeof PreviewArticle | null>(null);
 
 function preview(article: Article) {
@@ -345,10 +336,6 @@ const selectedAccount = ref<Info | undefined>();
 watch(selectedAccount, newVal => {
   switchTableData(newVal!.fakeid).catch(() => {});
 });
-
-function getSelectedRows() {
-  return gridApi.value?.getSelectedRows() || [];
-}
 
 async function switchTableData(fakeid: string) {
   loading.value = true;
@@ -379,15 +366,6 @@ async function switchTableData(fakeid: string) {
   loading.value = false;
 }
 
-function showToast(title: string, description: string) {
-  toast.add({
-    color: 'rose',
-    title: title,
-    description: description,
-    icon: 'i-octicon:bell-24',
-  });
-}
-
 function updateRow(article: Article) {
   const rowNode = gridApi.value?.getRowNode(`${article.fakeid}:${article.aid}`);
   if (rowNode) {
@@ -395,97 +373,47 @@ function updateRow(article: Article) {
   }
 }
 
-const downloadBtnLoading = ref(false);
-const progress_1 = ref(0);
-const progress_2 = ref(0);
-
-// 抓取文章HTML
-async function downloadArticleHTML() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Downloader(urls);
-  manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.debug(
-      `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
-    );
-    progress_1.value = status.completed.length;
-    if (success) {
-      const article = globalRowData.find(article => article.link === url);
-      if (article) {
-        article.contentDownload = true;
-        updateRow(article);
-      } else {
-        console.warn(`${url} not found in table data when update contentDownload`);
-      }
-    }
-  });
-  manager.on('download:deleted', (url: string) => {
-    const article = globalRowData.find(article => article.link === url);
-    if (article) {
-      article.is_deleted = true;
-      articleDeleted(url);
-      updateRow(article);
-    }
-  });
-  manager.on('download:checking', (url: string) => {
-    const article = globalRowData.find(article => article.link === url);
-    if (article) {
-      article.is_deleted = true;
-      articleDeleted(url);
-      updateRow(article);
-    }
-  });
-  manager.on('download:begin', () => {
-    console.debug('开始抓取【文章内容】...');
-    progress_1.value = 0;
-    progress_2.value = urls.length;
-  });
-  manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: '【文章内容】抓取完成',
-      description: `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}, 检测到已被删除:${status.deleted.length}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    downloadBtnLoading.value = true;
-    await manager.startDownload('html');
-  } catch (error) {
-    console.error('【文章内容】抓取失败:', error);
-    alert((error as Error).message);
-  } finally {
-    downloadBtnLoading.value = false;
-  }
+const selectedArticles = shallowRef<Article[]>([]);
+function onSelectionChanged(event: SelectionChangedEvent) {
+  selectedArticles.value = (event.selectedNodes || []).map(node => node.data);
 }
+const selectedArticleUrls = computed(() => {
+  return selectedArticles.value.map(article => article.link);
+});
 
-// 抓取文章阅读量、点赞量等元数据
-async function downloadArticleMetadata() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Downloader(urls);
-  manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.debug(
-      `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
-    );
-    progress_1.value = status.completed.length;
-  });
-  manager.on('download:metadata', (url: string, metadata: Metadata) => {
+const {
+  loading: downloadBtnLoading,
+  completed_count: downloadCompletedCount,
+  total_count: downloadTotalCount,
+  download,
+  stop: stopDownload,
+} = useDownloader({
+  onContent(url: string) {
+    const article = globalRowData.find(article => article.link === url);
+    if (article) {
+      article.contentDownload = true;
+      updateRow(article);
+    } else {
+      console.warn(`${url} not found in table data when update contentDownload`);
+    }
+  },
+  onDelete(url: string) {
+    const article = globalRowData.find(article => article.link === url);
+    if (article) {
+      article.is_deleted = true;
+      articleDeleted(url);
+      updateRow(article);
+    }
+  },
+  onChecking(url: string) {
+    const article = globalRowData.find(article => article.link === url);
+    if (article) {
+      article.is_deleted = true;
+      articleDeleted(url);
+      updateRow(article);
+    }
+  },
+  onMetadata(url: string, metadata: Metadata) {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.readNum = metadata.readNum;
@@ -497,393 +425,30 @@ async function downloadArticleMetadata() {
     } else {
       console.warn(`${url} not found in table data when update metadata`);
     }
-  });
-  manager.on('download:deleted', (url: string) => {
+  },
+  onComment(url: string) {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
-      article.is_deleted = true;
-      articleDeleted(url);
+      article.commentDownload = true;
       updateRow(article);
+    } else {
+      console.warn(`${url} not found in table data when update commentDownload`);
     }
-  });
-  manager.on('download:checking', (url: string) => {
-    const article = globalRowData.find(article => article.link === url);
-    if (article) {
-      article.is_deleted = true;
-      articleDeleted(url);
-      updateRow(article);
-    }
-  });
-  manager.on('download:begin', () => {
-    console.debug('开始抓取【阅读量】...');
-    progress_1.value = 0;
-    progress_2.value = urls.length;
-  });
-  manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: '【阅读量】抓取完成',
-      description: `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}, 检测到已被删除:${status.deleted.length}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
+  },
+});
 
-  try {
-    downloadBtnLoading.value = true;
-    await manager.startDownload('metadata');
-  } catch (error) {
-    console.error('【阅读量】抓取失败:', error);
-    alert((error as Error).message);
-  } finally {
-    downloadBtnLoading.value = false;
-  }
-}
-
-// 抓取文章留言数据
-async function downloadArticleComment() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Downloader(urls);
-  manager.on('download:progress', (url: string, success: boolean, status: DownloaderStatus) => {
-    console.debug(
-      `进度: (进行中:${status.pending.length} / 已完成:${status.completed.length} / 已失败:${status.failed.length} / 已删除:${status.deleted.length})`
-    );
-    progress_1.value = status.completed.length;
-    if (success) {
-      const article = globalRowData.find(article => article.link === url);
-      if (article) {
-        article.commentDownload = true;
-        updateRow(article);
-      } else {
-        console.warn(`${url} not found in table data when update commentDownload`);
-      }
-    }
-  });
-  manager.on('download:begin', () => {
-    console.debug('开始抓取【留言内容】...');
-    progress_1.value = 0;
-    progress_2.value = urls.length;
-  });
-  manager.on('download:finish', (seconds: number, status: DownloaderStatus) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: '【留言内容】抓取完成',
-      description: `本次抓取耗时 ${formatElapsedTime(seconds)}, 成功:${status.completed.length}, 失败:${status.failed.length}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    downloadBtnLoading.value = true;
-    await manager.startDownload('comments');
-  } catch (error) {
-    console.error('【留言内容】抓取失败:', error);
-    alert((error as Error).message);
-  } finally {
-    downloadBtnLoading.value = false;
-  }
-}
-
-const exportBtnLoading = ref(false);
-const exportPhase = ref('导出中');
-
-// 导出 excel
-async function export2excel() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '导出中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:total', (total: number) => {
-    progress_2.value = total;
-  });
-  manager.on('export:progress', (num: number) => {
-    progress_1.value = num;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'Excel 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('excel');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
-
-// 导出 json
-async function export2json() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '导出中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:total', (total: number) => {
-    progress_2.value = total;
-  });
-  manager.on('export:progress', (num: number) => {
-    progress_1.value = num;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'Json 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('json');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
-
-// 导出 html
-async function export2html() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '资源解析中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:download', (total: number) => {
-    exportPhase.value = '资源下载中';
-    progress_1.value = 0;
-    progress_2.value = total;
-  });
-  manager.on('export:download:progress', (url: string, success: boolean, status: ExporterStatus) => {
-    progress_1.value = status.completed.length;
-  });
-  manager.on('export:write', (total: number) => {
-    exportPhase.value = '文件写入中';
-    progress_1.value = 0;
-    progress_2.value = total;
-  });
-  manager.on('export:write:progress', (index: number) => {
-    progress_1.value = index;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'HTML 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('html');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
-
-// 导出 txt
-async function export2txt() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '资源解析中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:total', (total: number) => {
-    exportPhase.value = '导出中';
-    progress_1.value = 0;
-    progress_2.value = total;
-  });
-  manager.on('export:progress', (index: number) => {
-    progress_1.value = index;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'Txt 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('txt');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
-
-// 导出 markdown
-async function export2markdown() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '资源解析中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:total', (total: number) => {
-    exportPhase.value = '导出中';
-    progress_1.value = 0;
-    progress_2.value = total;
-  });
-  manager.on('export:progress', (index: number) => {
-    progress_1.value = index;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'Markdown 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('markdown');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
-
-// 导出 word
-async function export2word() {
-  const selectedRows = getSelectedRows();
-  if (selectedRows.length === 0) {
-    showToast('提示', '请先选择文章');
-    return;
-  }
-
-  const urls: string[] = selectedRows.map(article => article.link);
-
-  const manager = new Exporter(urls);
-  manager.on('export:begin', () => {
-    exportPhase.value = '资源解析中';
-    progress_1.value = 0;
-    progress_2.value = 0;
-  });
-  manager.on('export:total', (total: number) => {
-    exportPhase.value = '导出中';
-    progress_1.value = 0;
-    progress_2.value = total;
-  });
-  manager.on('export:progress', (index: number) => {
-    progress_1.value = index;
-  });
-  manager.on('export:finish', (seconds: number) => {
-    console.debug('耗时:', formatElapsedTime(seconds));
-    toast.add({
-      id: 'update_downloaded',
-      color: 'purple',
-      title: 'Word 导出完成',
-      description: `本次导出耗时 ${formatElapsedTime(seconds)}`,
-      icon: 'i-octicon-desktop-download-24',
-    });
-  });
-
-  try {
-    exportBtnLoading.value = true;
-    await manager.startExport('word');
-  } catch (error) {
-    console.error('导出任务失败:', error);
-    alert((error as Error).message);
-  } finally {
-    exportBtnLoading.value = false;
-  }
-}
+const {
+  loading: exportBtnLoading,
+  phase: exportPhase,
+  completed_count: exportCompletedCount,
+  total_count: exportTotalCount,
+  exportFile,
+} = useExporter();
 
 async function debug() {
-  // const article = await getArticleByLink('https://mp.weixin.qq.com/s/8sCrH6AZyyff5dVXQAzVFQ');
-  // console.log(article);
   const cache = await getHtmlCache('https://mp.weixin.qq.com/s/Uzr9f6SRQ_H1qM812vYXdg');
   if (cache) {
     const rawHtml = await readBlob(cache.file);
-    // console.log(rawHtml);
     const html = normalizeHtml(rawHtml);
     console.log(html);
   }
@@ -905,48 +470,50 @@ async function debug() {
           </div>
         </div>
         <div class="flex items-center space-x-2">
+          <UButton v-if="downloadBtnLoading" color="black" @click="stopDownload">停止</UButton>
           <ButtonGroup
             :items="[
               { label: '文章内容', event: 'download-article-html' },
               { label: '阅读量 (需要Credential)', event: 'download-article-metadata' },
               { label: '留言内容 (需要Credential)', event: 'download-article-comment' },
             ]"
-            @download-article-html="downloadArticleHTML"
-            @download-article-metadata="downloadArticleMetadata"
-            @download-article-comment="downloadArticleComment"
+            @download-article-html="download('html', selectedArticleUrls)"
+            @download-article-metadata="download('metadata', selectedArticleUrls)"
+            @download-article-comment="download('comment', selectedArticleUrls)"
           >
             <UButton
               :loading="downloadBtnLoading"
               :disabled="!selectedAccount"
               color="white"
               class="font-mono"
-              :label="downloadBtnLoading ? `抓取中 ${progress_1}/${progress_2}` : '抓取'"
+              :label="downloadBtnLoading ? `抓取中 ${downloadCompletedCount}/${downloadTotalCount}` : '抓取'"
               trailing-icon="i-heroicons-chevron-down-20-solid"
             />
           </ButtonGroup>
+
           <ButtonGroup
             :items="[
               { label: 'Excel', event: 'export-article-excel' },
               { label: 'JSON', event: 'export-article-json' },
               { label: 'HTML', event: 'export-article-html' },
-              { label: 'Txt', event: 'export-article-txt' },
+              { label: 'Txt', event: 'export-article-text' },
               { label: 'Markdown', event: 'export-article-markdown' },
               { label: 'Word (内测中)', event: 'export-article-word' },
               // { label: 'PDF (计划中)', event: 'export-article-pdf', disabled: true },
             ]"
-            @export-article-excel="export2excel"
-            @export-article-json="export2json"
-            @export-article-html="export2html"
-            @export-article-txt="export2txt"
-            @export-article-markdown="export2markdown"
-            @export-article-word="export2word"
+            @export-article-excel="exportFile('excel', selectedArticleUrls)"
+            @export-article-json="exportFile('json', selectedArticleUrls)"
+            @export-article-html="exportFile('html', selectedArticleUrls)"
+            @export-article-text="exportFile('text', selectedArticleUrls)"
+            @export-article-markdown="exportFile('markdown', selectedArticleUrls)"
+            @export-article-word="exportFile('word', selectedArticleUrls)"
           >
             <UButton
               :loading="exportBtnLoading"
               :disabled="!selectedAccount"
               color="white"
               class="font-mono"
-              :label="exportBtnLoading ? `${exportPhase} ${progress_1}/${progress_2}` : '导出'"
+              :label="exportBtnLoading ? `${exportPhase} ${exportCompletedCount}/${exportTotalCount}` : '导出'"
               trailing-icon="i-heroicons-chevron-down-20-solid"
             />
           </ButtonGroup>
@@ -966,6 +533,7 @@ async function debug() {
         @column-visible="onColumnStateChange"
         @column-pinned="onColumnStateChange"
         @column-resized="onColumnStateChange"
+        @selection-changed="onSelectionChanged"
       ></ag-grid-vue>
     </div>
 
