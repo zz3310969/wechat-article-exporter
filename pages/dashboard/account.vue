@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import {
-  type ColDef,
-  type GetRowIdParams,
-  type GridApi,
-  type GridOptions,
-  type GridReadyEvent,
-  type ICellRendererParams,
-  type SelectionChangedEvent,
-  type ValueGetterParams,
+import type {
+  ColDef,
+  GetRowIdParams,
+  GridApi,
+  GridOptions,
+  GridReadyEvent,
+  ICellRendererParams,
+  SelectionChangedEvent,
+  ValueGetterParams,
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
+import { defu } from 'defu';
 import { formatTimeStamp } from '#shared/utils/helpers';
 import { getArticleList } from '~/apis';
 import GlobalSearchAccountDialog from '~/components/global/SearchAccountDialog.vue';
@@ -43,6 +44,7 @@ const modal = useModal();
 const { checkLogin } = useLoginCheck();
 
 const { getSyncTimestamp } = useSyncDeadline();
+const syncToTimestamp = getSyncTimestamp();
 
 const preferences = usePreferences();
 
@@ -76,17 +78,16 @@ async function onSelectAccount(account: Info) {
 const isCanceled = ref(false);
 const isDeleting = ref(false);
 const isSyncing = ref(false);
+
 // 当前正在同步的公众号id
 const syncingRowId = ref<string | null>(null);
 
-const timer = ref<number | null>(null);
-
-const syncToTimestamp = getSyncTimestamp();
+const syncTimer = ref<number | null>(null);
 
 async function _load(account: Info, begin: number, loadMore: boolean, promise: PromiseInstance) {
   if (isCanceled.value) {
     isCanceled.value = false; // 这里需要将状态复位
-    promise.reject(new Error('已取消'));
+    promise.reject(new Error('已取消同步'));
     return;
   }
 
@@ -96,7 +97,7 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
   const [articles, completed] = await getArticleList(account, begin);
   if (isCanceled.value) {
     isCanceled.value = false;
-    promise.reject(new Error('已取消'));
+    promise.reject(new Error('已取消同步'));
     return;
   }
   if (completed) {
@@ -131,12 +132,12 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
 
   await updateRow(account.fakeid);
   if (loadMore) {
-    timer.value = window.setTimeout(
+    syncTimer.value = window.setTimeout(
       () => {
         if (isCanceled.value) {
-          console.warn('已取消');
+          console.warn('已取消同步');
           isCanceled.value = false;
-          promise.reject(new Error('已取消'));
+          promise.reject(new Error('已取消同步'));
           return;
         }
         _load(account, begin, true, promise);
@@ -319,9 +320,9 @@ const columnDefs = ref<ColDef[]>([
       },
       onStop: (params: ICellRendererParams) => {
         isCanceled.value = true;
-        if (timer.value) {
-          window.clearTimeout(timer.value);
-          timer.value = null;
+        if (syncTimer.value) {
+          window.clearTimeout(syncTimer.value);
+          syncTimer.value = null;
         }
 
         syncingRowId.value = null;
@@ -337,11 +338,13 @@ const columnDefs = ref<ColDef[]>([
   },
 ]);
 
-// todo: 这里最好使用深度merge函数
-const gridOptions: GridOptions = {
-  ...sharedGridOptions,
-  getRowId: (params: GetRowIdParams) => String(params.data.fakeid),
-};
+// 注意，`defu`函数最左边的参数优先级最高
+const gridOptions: GridOptions = defu(
+  {
+    getRowId: (params: GetRowIdParams) => String(params.data.fakeid),
+  },
+  sharedGridOptions
+);
 
 const gridApi = shallowRef<GridApi | null>(null);
 function onGridReady(params: GridReadyEvent) {

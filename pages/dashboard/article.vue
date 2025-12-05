@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { ColDef, GridApi, GridReadyEvent, ValueGetterParams } from 'ag-grid-community';
-import {
-  type FilterChangedEvent,
-  type GetRowIdParams,
-  type GridOptions,
-  type ICellRendererParams,
-  type ValueFormatterParams,
+import type {
+  ColDef,
+  FilterChangedEvent,
+  GetRowIdParams,
+  GridApi,
+  GridOptions,
+  GridReadyEvent,
+  ICellRendererParams,
+  ValueFormatterParams,
+  ValueGetterParams,
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
+import { defu } from 'defu';
 import type { PreviewArticle } from '#components';
 import { readBlob } from '#shared/utils';
 import {
@@ -43,6 +47,11 @@ useHead({
 
 // 当前页面的数据模型
 interface Article extends AppMsgEx, Partial<ArticleMetadata> {
+  /**
+   * 公众号id
+   */
+  fakeid: string;
+
   /**
    * 文章内容是否已下载
    */
@@ -269,19 +278,21 @@ const columnDefs = ref<ColDef[]>([
   },
 ]);
 
-// todo: 这里最好使用深度merge函数
-const gridOptions: GridOptions = {
-  ...sharedGridOptions,
-  getRowId: (params: GetRowIdParams) => String(params.data.fakeid + params.data.aid),
-  statusBar: {
-    statusPanels: [
-      {
-        statusPanel: GridStatusBar,
-        align: 'left',
-      },
-    ],
+// 注意，`defu`函数最左边的参数优先级最高
+const gridOptions: GridOptions = defu(
+  {
+    getRowId: (params: GetRowIdParams) => `${params.data.fakeid}:${params.data.aid}`,
+    statusBar: {
+      statusPanels: [
+        {
+          statusPanel: GridStatusBar,
+          align: 'left',
+        },
+      ],
+    },
   },
-};
+  sharedGridOptions
+);
 
 const gridApi = shallowRef<GridApi | null>(null);
 function onGridReady(params: GridReadyEvent) {
@@ -378,7 +389,7 @@ function showToast(title: string, description: string) {
 }
 
 function updateRow(article: Article) {
-  const rowNode = gridApi.value?.getRowNode(article.aid);
+  const rowNode = gridApi.value?.getRowNode(`${article.fakeid}:${article.aid}`);
   if (rowNode) {
     rowNode.updateData(article);
   }
