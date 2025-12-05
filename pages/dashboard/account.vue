@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { AG_GRID_LOCALE_CN } from '@ag-grid-community/locale';
 import {
   type ColDef,
   type GetRowIdParams,
@@ -7,10 +6,7 @@ import {
   type GridOptions,
   type GridReadyEvent,
   type ICellRendererParams,
-  type IDateFilterParams,
   type SelectionChangedEvent,
-  themeQuartz,
-  type ValueFormatterParams,
   type ValueGetterParams,
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
@@ -18,14 +14,13 @@ import { formatTimeStamp } from '#shared/utils/helpers';
 import { getArticleList } from '~/apis';
 import GlobalSearchAccountDialog from '~/components/global/SearchAccountDialog.vue';
 import GridAccountActions from '~/components/grid/AccountActions.vue';
-import GridLoading from '~/components/grid/Loading.vue';
 import GridLoadProgress from '~/components/grid/LoadProgress.vue';
-import GridNoRows from '~/components/grid/NoRows.vue';
 import ConfirmModal from '~/components/modal/Confirm.vue';
 import LoginModal from '~/components/modal/Login.vue';
 import toastFactory from '~/composables/toast';
 import useLoginCheck from '~/composables/useLoginCheck';
 import { IMAGE_PROXY, websiteName } from '~/config';
+import { sharedGridOptions } from '~/config/shared-grid-options';
 import { deleteAccountData } from '~/store/v2';
 import { getArticleCache, hitCache } from '~/store/v2/article';
 import { getAllInfo, getInfoCache, type Info, importInfos } from '~/store/v2/info';
@@ -189,7 +184,7 @@ async function loadSelectedAccountArticle() {
   }
 }
 
-let rowData: Info[] = [];
+let globalRowData: Info[] = [];
 
 const columnDefs = ref<ColDef[]>([
   {
@@ -269,7 +264,7 @@ const columnDefs = ref<ColDef[]>([
     cellRenderer: 'agAnimateShowChangeCellRenderer',
     filter: 'agNumberColumnFilter',
     cellClass: 'flex justify-center items-center font-mono',
-    minWidth: 150,
+    minWidth: 180,
   },
   {
     colId: 'articles',
@@ -279,7 +274,7 @@ const columnDefs = ref<ColDef[]>([
     cellRenderer: 'agAnimateShowChangeCellRenderer',
     filter: 'agNumberColumnFilter',
     cellClass: 'flex justify-center items-center font-mono',
-    minWidth: 150,
+    minWidth: 180,
     initialHide: true,
   },
   {
@@ -311,7 +306,7 @@ const columnDefs = ref<ColDef[]>([
     cellRenderer: GridAccountActions,
     cellRendererParams: {
       onSync: (params: ICellRendererParams) => {
-        // if (!checkLogin()) return;
+        if (!checkLogin()) return;
 
         isCanceled.value = false;
         loadAccountArticle(params.data)
@@ -342,64 +337,10 @@ const columnDefs = ref<ColDef[]>([
   },
 ]);
 
+// todo: 这里最好使用深度merge函数
 const gridOptions: GridOptions = {
-  localeText: AG_GRID_LOCALE_CN,
-  rowNumbers: true,
-  loadingOverlayComponent: GridLoading,
-  noRowsOverlayComponent: GridNoRows,
+  ...sharedGridOptions,
   getRowId: (params: GetRowIdParams) => String(params.data.fakeid),
-  sideBar: {
-    toolPanels: [
-      {
-        id: 'columns',
-        labelDefault: 'Columns',
-        labelKey: 'columns',
-        iconKey: 'columns',
-        toolPanel: 'agColumnsToolPanel',
-        minWidth: 225,
-        maxWidth: 225,
-        width: 225,
-        toolPanelParams: {
-          suppressRowGroups: true,
-          suppressValues: true,
-          suppressPivotMode: true,
-        },
-      },
-    ],
-    position: 'right',
-  },
-  enableCellTextSelection: true,
-  tooltipShowDelay: 0,
-  tooltipShowMode: 'whenTruncated',
-  suppressContextMenu: true,
-  defaultColDef: {
-    sortable: true,
-    filter: true,
-    flex: 1,
-    enableCellChangeFlash: false,
-    suppressHeaderMenuButton: true,
-    suppressHeaderContextMenu: true,
-    enableValue: true,
-    enableRowGroup: true,
-  },
-  selectionColumnDef: {
-    sortable: true,
-    width: 80,
-    pinned: 'left',
-  },
-  rowSelection: {
-    mode: 'multiRow',
-    headerCheckbox: true,
-    selectAll: 'filtered',
-  },
-  theme: themeQuartz.withParams({
-    borderColor: '#e5e7eb',
-    rowBorder: true,
-    columnBorder: true,
-    headerFontWeight: 700,
-    oddRowBackgroundColor: '#00005506',
-    sidePanelBorder: true,
-  }),
 };
 
 const gridApi = shallowRef<GridApi | null>(null);
@@ -432,8 +373,8 @@ function restoreColumnState() {
 }
 
 async function refresh() {
-  rowData = await getAllInfo();
-  gridApi.value?.setGridOption('rowData', rowData);
+  globalRowData = await getAllInfo();
+  gridApi.value?.setGridOption('rowData', globalRowData);
 }
 
 async function updateRow(fakeid: string) {
@@ -536,6 +477,8 @@ function exportAccount() {
     exportBtnLoading.value = false;
   }
 }
+
+const { getActualDateRange } = useSyncDeadline();
 </script>
 
 <template>
@@ -546,7 +489,7 @@ function exportAccount() {
 
     <div class="flex flex-col h-full divide-y divide-gray-200">
       <!-- 顶部操作区 -->
-      <header class="flex items-center gap-3 px-3 py-3">
+      <header class="flex items-stretch gap-3 px-3 py-3">
         <UButton icon="i-lucide:user-plus" color="blue" :disabled="isDeleting || addBtnLoading" @click="addAccount">
           {{ addBtnLoading ? '添加中...' : '添加' }}
         </UButton>
@@ -581,12 +524,15 @@ function exportAccount() {
           @click="loadSelectedAccountArticle"
           >同步</UButton
         >
+        <div class="hidden xl:flex flex-1 justify-end">
+          <span class="self-end text-sm text-blue-500 font-medium">同步范围: {{ getActualDateRange() }}</span>
+        </div>
       </header>
 
       <!-- 数据表格 -->
       <ag-grid-vue
         style="width: 100%; height: 100%"
-        :rowData="rowData"
+        :rowData="globalRowData"
         :columnDefs="columnDefs"
         :gridOptions="gridOptions"
         @grid-ready="onGridReady"

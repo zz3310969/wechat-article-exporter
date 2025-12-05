@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { AG_GRID_LOCALE_CN } from '@ag-grid-community/locale';
-import type { ColDef, GridApi, GridReadyEvent, IDateFilterParams, ValueGetterParams } from 'ag-grid-community';
+import type { ColDef, GridApi, GridReadyEvent, ValueGetterParams } from 'ag-grid-community';
 import {
   type FilterChangedEvent,
   type GetRowIdParams,
   type GridOptions,
   type ICellRendererParams,
-  themeQuartz,
   type ValueFormatterParams,
 } from 'ag-grid-community';
 import { AgGridVue } from 'ag-grid-vue3';
@@ -23,11 +21,10 @@ import { normalizeHtml } from '#shared/utils/html';
 import GridActions from '~/components/grid/Actions.vue';
 import GridAlbum from '~/components/grid/Album.vue';
 import GridCoverTooltip from '~/components/grid/CoverTooltip.vue';
-import GridLoading from '~/components/grid/Loading.vue';
-import GridNoRows from '~/components/grid/NoRows.vue';
 import GridStatusBar from '~/components/grid/StatusBar.vue';
 import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
-import { isDev } from '~/config';
+import { isDev, websiteName } from '~/config';
+import { sharedGridOptions } from '~/config/shared-grid-options';
 import { articleDeleted, getArticleCache } from '~/store/v2/article';
 import { getCommentCache } from '~/store/v2/comment';
 import { getHtmlCache } from '~/store/v2/html';
@@ -38,27 +35,26 @@ import type { AppMsgEx } from '~/types/types';
 import { Downloader } from '~/utils/download/Downloader';
 import { Exporter } from '~/utils/download/Exporter';
 import type { ArticleMetadata, DownloaderStatus, ExporterStatus } from '~/utils/download/types';
+import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
+
+useHead({
+  title: `文章下载 | ${websiteName}`,
+});
+
+// 当前页面的数据模型
+interface Article extends AppMsgEx, Partial<ArticleMetadata> {
+  /**
+   * 文章内容是否已下载
+   */
+  contentDownload: boolean;
+
+  /**
+   * 留言内容是否已下载
+   */
+  commentDownload: boolean;
+}
 
 let globalRowData: Article[] = [];
-
-const filterParams: IDateFilterParams = {
-  filterOptions: ['lessThan', 'greaterThan', 'inRange'],
-  comparator: (filterLocalDateAtMidnight: Date, cellValue: Date) => {
-    const t = filterLocalDateAtMidnight;
-    if (cellValue < t) {
-      return -1;
-    } else if (cellValue === t) {
-      return 0;
-    } else {
-      return 1;
-    }
-  },
-};
-const booleanColumnFilterParams = {
-  suppressMiniFilter: true,
-  values: [true, false],
-  valueFormatter: (params: ValueFormatterParams) => (params.value ? '是' : '否'),
-};
 
 const columnDefs = ref<ColDef[]>([
   {
@@ -74,8 +70,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: '链接',
     field: 'link',
     cellDataType: 'text',
-    sortable: false,
-    filter: false,
+    filter: 'agTextColumnFilter',
     minWidth: 150,
     initialHide: true,
     cellClass: 'font-mono',
@@ -85,10 +80,6 @@ const columnDefs = ref<ColDef[]>([
     field: 'title',
     cellDataType: 'text',
     filter: 'agTextColumnFilter',
-    filterParams: {
-      filterOptions: ['contains', 'notContains'],
-      maxNumConditions: 1,
-    },
     tooltipField: 'title',
     minWidth: 200,
   },
@@ -109,13 +100,8 @@ const columnDefs = ref<ColDef[]>([
   {
     headerName: '摘要',
     field: 'digest',
-    sortable: false,
     cellDataType: 'text',
     filter: 'agTextColumnFilter',
-    filterParams: {
-      filterOptions: ['contains', 'notContains'],
-      maxNumConditions: 1,
-    },
     tooltipField: 'digest',
     minWidth: 200,
     initialHide: true,
@@ -125,7 +111,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'create_time',
     valueFormatter: p => formatTimeStamp(p.value),
     filter: 'agDateColumnFilter',
-    filterParams: filterParams,
+    filterParams: createDateColumnFilterParams(),
     filterValueGetter: (params: ValueGetterParams) => {
       return new Date(params.getValue('create_time') * 1000);
     },
@@ -136,13 +122,13 @@ const columnDefs = ref<ColDef[]>([
   {
     headerName: '发布时间',
     field: 'update_time',
-    minWidth: 180,
     valueFormatter: p => formatTimeStamp(p.value),
     filter: 'agDateColumnFilter',
-    filterParams: filterParams,
+    filterParams: createDateColumnFilterParams(),
     filterValueGetter: (params: ValueGetterParams) => {
       return new Date(params.getValue('update_time') * 1000);
     },
+    minWidth: 180,
     cellClass: 'flex justify-center items-center font-mono',
   },
   {
@@ -150,7 +136,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'is_deleted',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: booleanColumnFilterParams,
+    filterParams: createBooleanColumnFilterParams('已删除', '未删除'),
     minWidth: 150,
     initialHide: true,
     cellClass: 'flex justify-center items-center',
@@ -160,7 +146,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'contentDownload',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: booleanColumnFilterParams,
+    filterParams: createBooleanColumnFilterParams('已下载', '未下载'),
     minWidth: 150,
     cellClass: 'flex justify-center items-center',
   },
@@ -169,7 +155,7 @@ const columnDefs = ref<ColDef[]>([
     headerName: '留言已下载',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: booleanColumnFilterParams,
+    filterParams: createBooleanColumnFilterParams('已下载', '未下载'),
     minWidth: 150,
     cellClass: 'flex justify-center items-center',
   },
@@ -226,7 +212,7 @@ const columnDefs = ref<ColDef[]>([
     valueGetter: p => p.data && p.data.copyright_stat === 1 && p.data.copyright_type === 1,
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: booleanColumnFilterParams,
+    filterParams: createBooleanColumnFilterParams('原创', '非原创'),
     minWidth: 150,
     cellClass: 'flex justify-center items-center',
   },
@@ -283,42 +269,10 @@ const columnDefs = ref<ColDef[]>([
   },
 ]);
 
+// todo: 这里最好使用深度merge函数
 const gridOptions: GridOptions = {
-  localeText: AG_GRID_LOCALE_CN,
-  rowNumbers: true,
-  loadingOverlayComponent: GridLoading,
-  noRowsOverlayComponent: GridNoRows,
-  getRowId: (params: GetRowIdParams) => String(params.data.aid),
-  sideBar: {
-    toolPanels: [
-      {
-        id: 'columns',
-        labelDefault: 'Columns',
-        labelKey: 'columns',
-        iconKey: 'columns',
-        toolPanel: 'agColumnsToolPanel',
-        minWidth: 225,
-        maxWidth: 225,
-        width: 225,
-        toolPanelParams: {
-          suppressRowGroups: true,
-          suppressValues: true,
-          suppressPivotMode: true,
-        },
-      },
-      {
-        id: 'filters',
-        labelDefault: 'Filters',
-        labelKey: 'filters',
-        iconKey: 'filter',
-        toolPanel: 'agFiltersToolPanel',
-        minWidth: 180,
-        maxWidth: 400,
-        width: 250,
-      },
-    ],
-    position: 'right',
-  },
+  ...sharedGridOptions,
+  getRowId: (params: GetRowIdParams) => String(params.data.fakeid + params.data.aid),
   statusBar: {
     statusPanels: [
       {
@@ -327,40 +281,7 @@ const gridOptions: GridOptions = {
       },
     ],
   },
-  enableCellTextSelection: true,
-  tooltipShowDelay: 0,
-  tooltipShowMode: 'whenTruncated',
-  suppressContextMenu: true,
-  defaultColDef: {
-    filter: true,
-    flex: 1,
-    enableCellChangeFlash: false,
-    suppressHeaderMenuButton: true,
-    suppressHeaderContextMenu: true,
-    enableValue: true,
-    enableRowGroup: true,
-  },
-  selectionColumnDef: {
-    sortable: true,
-    width: 80,
-    pinned: 'left',
-  },
-  rowSelection: {
-    mode: 'multiRow',
-    headerCheckbox: true,
-    selectAll: 'filtered',
-  },
-  theme: themeQuartz.withParams({
-    borderColor: '#e5e7eb',
-    rowBorder: true,
-    columnBorder: true,
-    headerFontWeight: 700,
-    oddRowBackgroundColor: '#00005506',
-    sidePanelBorder: true,
-  }),
 };
-
-const loading = ref(false);
 
 const gridApi = shallowRef<GridApi | null>(null);
 function onGridReady(params: GridReadyEvent) {
@@ -397,38 +318,17 @@ function onFilterChanged(event: FilterChangedEvent) {
 const preferences = usePreferences();
 const hideDeleted = computed(() => (preferences.value as unknown as Preferences).hideDeleted);
 
+const toast = useToast();
+
 const previewArticleRef = ref<typeof PreviewArticle | null>(null);
 
 function preview(article: Article) {
   previewArticleRef.value!.open(article);
 }
 
-// 当前页面的数据模型
-interface Article extends AppMsgEx, Partial<ArticleMetadata> {
-  /**
-   * 是否被选中
-   */
-  // checked: boolean;
+const loading = ref(false);
 
-  /**
-   * 是否显示
-   */
-  // display: boolean;
-  /**
-   * 文章内容是否已下载
-   */
-  contentDownload: boolean;
-
-  /**
-   * 留言内容是否已下载
-   */
-  commentDownload: boolean;
-}
-
-useHead({
-  title: '文章链接 | 微信公众号文章导出',
-});
-
+// 只能选择单个账号
 const selectedAccount = ref<Info | undefined>();
 
 watch(selectedAccount, newVal => {
@@ -467,8 +367,6 @@ async function switchTableData(fakeid: string) {
   gridApi.value?.setGridOption('rowData', globalRowData);
   loading.value = false;
 }
-
-const toast = useToast();
 
 function showToast(title: string, description: string) {
   toast.add({
@@ -989,7 +887,7 @@ async function debug() {
 
     <div class="flex flex-col h-full divide-y divide-gray-200">
       <!-- 顶部筛选与操作区 -->
-      <header class="flex flex-col items-start 2xl:flex-row 2xl:items-center gap-2 2xl:justify-between px-3 py-2">
+      <header class="flex flex-col items-start sm:flex-row sm:items-center gap-2 sm:justify-between px-3 py-2">
         <div class="flex flex-col xl:flex-row gap-2">
           <div class="flex space-x-3">
             <AccountSelectorForArticle v-model="selectedAccount" class="w-80" />
