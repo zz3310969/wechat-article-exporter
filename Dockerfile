@@ -1,8 +1,10 @@
 # 编译层
 FROM node:22-alpine AS build-env
 
-# 安装 Yarn（Alpine 包管理器方式，轻量）
-RUN apk add --no-cache yarn
+# 安装 Yarn (pin a specific Yarn version)
+RUN corepack enable
+RUN corepack prepare yarn@1.22.22 --activate
+
 
 # 设置工作目录
 WORKDIR /app
