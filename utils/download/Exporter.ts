@@ -321,8 +321,10 @@ export class Exporter extends BaseDownload {
 
         const uuid = new Date().getTime() + Math.random().toString();
         const ext = mime.getExtension(resource.file.type);
-        await this.writeFile(dirname + `/assets/${uuid}.${ext}`, resource.file);
-        urlmap.set(resourceUrl, `./assets/${uuid}.${ext}`);
+        if (ext) {
+          await this.writeFile(dirname + `/assets/${uuid}.${ext}`, resource.file);
+          urlmap.set(resourceUrl, `./assets/${uuid}.${ext}`);
+        }
       }
 
       const finalHtml = await this.normalizeHtml(cached, html, urlmap);
@@ -848,6 +850,8 @@ ${commentHTML}
 
   // 写入文件
   public async writeFile(path: string, file: Blob): Promise<void> {
+    console.log('path:', path);
+
     const segment = path.split('/');
     const filename = segment[segment.length - 1];
     let directory = this.exportRootDirectoryHandle!;
@@ -860,6 +864,7 @@ ${commentHTML}
         });
       }
     }
+    console.log('filename:', filename);
     const fileHandle = await directory.getFileHandle(filename, { create: true });
     // @ts-ignore
     const writable = await fileHandle.createWritable();
