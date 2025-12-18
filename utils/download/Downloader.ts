@@ -38,9 +38,9 @@ export class Downloader extends BaseDownload {
     this.isProcessing = true;
     const start = Date.now();
     this.emit('download:begin');
-    if (['metadata', 'comments'].includes(this.downloadType) && this.options.concurrency > 2) {
-      // 需要Credential爬取的数据，最大并发量设置为2
-      this.options.concurrency = 2;
+    if (['metadata', 'comments'].includes(this.downloadType) && this.options.concurrency > 5) {
+      // 需要Credential爬取的数据，最大并发量设置为5
+      this.options.concurrency = 5;
     }
 
     try {
@@ -502,8 +502,8 @@ export class Downloader extends BaseDownload {
     const scripts = document.getElementsByTagName('script');
     let targetScript = '';
     for (const script of scripts) {
-      if (script.innerHTML.includes('appmsg_bar_data')) {
-        targetScript = script.innerHTML;
+      if (script.innerHTML.includes('window.cgiDataNew =')) {
+        targetScript = script.outerHTML;
         break;
       }
     }
@@ -513,9 +513,8 @@ export class Downloader extends BaseDownload {
       return;
     }
 
-    // 精确提取对象字符串 (括号计数法)
-    const key = 'appmsg_bar_data:';
-    const startIdx = targetScript.indexOf(key);
+    // 提取对象字符串
+    const cgiData = await parseCgiDataNew(targetScript);
 
     let readNum = 0;
     let oldLikeNum = 0;
@@ -523,49 +522,16 @@ export class Downloader extends BaseDownload {
     let likeNum = 0;
     let commentNum = 0;
 
-    if (startIdx !== -1) {
-      let braceCount = 0;
-      let objectStr = '';
-      let foundStart = false;
-
-      for (let i = startIdx + key.length; i < targetScript.length; i++) {
-        const char = targetScript[i];
-
-        if (!foundStart) {
-          if (char === '{') {
-            foundStart = true;
-            braceCount = 1;
-            objectStr += char;
-          }
-          continue;
-        }
-
-        objectStr += char;
-        if (char === '{') braceCount++;
-        if (char === '}') braceCount--;
-
-        if (braceCount === 0) {
-          break;
-        }
-      }
-
-      // 将字符串转换为真正的 JS 对象
-      try {
-        const parseFn = new Function('return ' + objectStr);
-        const result = parseFn();
-
-        // console.log('解析成功，对象结构:', result);
-
-        readNum = result.read_num; //阅读量
-        oldLikeNum = result.old_like_count; //点赞
-        shareNum = result.share_count; //分享
-        likeNum = result.like_count; // 喜欢
-        commentNum = result.comment_count; // 留言
-
-      } catch (e) {
-        console.error('解析对象失败:', e);
-        return;
-      }
+    try {
+      const appmsg_bar_data = cgiData.user_info.appmsg_bar_data;
+      readNum = appmsg_bar_data.read_num; // 阅读量
+      oldLikeNum = appmsg_bar_data.old_like_count; //点赞
+      shareNum = appmsg_bar_data.share_count; //分享
+      likeNum = appmsg_bar_data.like_count; // 喜欢
+      commentNum = appmsg_bar_data.comment_count; // 留言
+    } catch (e) {
+      console.error('解析对象失败:', e);
+      return;
     }
 
     const article = await getArticleByLink(url);
@@ -584,4 +550,25 @@ export class Downloader extends BaseDownload {
     this.emit('download:metadata', url, metadata);
     await updateMetadataCache(metadata);
   }
+}
+
+function parseCgiDataNew(html: string): Promise<any> {
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.srcdoc = html;
+  document.body.appendChild(iframe);
+
+  return new Promise((resolve, reject) => {
+    iframe.onload = function () {
+      // @ts-ignore
+      const data = iframe.contentWindow.cgiDataNew;
+
+      // 用完后清理
+      document.body.removeChild(iframe);
+      resolve(data);
+    };
+    iframe.onerror = function (e) {
+      reject(e);
+    };
+  });
 }
