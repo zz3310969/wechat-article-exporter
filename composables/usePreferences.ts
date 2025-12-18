@@ -8,6 +8,7 @@ const defaultOptions: Partial<Preferences> = {
   privateProxyAuthorization: '',
   exportConfig: {
     dirname: '${title}',
+    maxlength: 0,
     exportExcelIncludeContent: false,
     exportJsonIncludeComments: false,
     exportJsonIncludeContent: false,

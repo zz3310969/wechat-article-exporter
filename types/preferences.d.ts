@@ -26,6 +26,9 @@ interface ExportConfig {
   // 目录名格式
   dirname: string;
 
+  // 目录最大长度
+  maxlength: number;
+
   // 导出json中是否包含文章内容
   exportJsonIncludeContent: boolean;
 

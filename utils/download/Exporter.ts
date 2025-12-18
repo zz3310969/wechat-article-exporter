@@ -872,6 +872,8 @@ ${commentHTML}
   // 确定导出文件的目录名
   private async exportDirName(articleUrl: string): Promise<string> {
     let dirnameTpl = (preferences.value as Preferences).exportConfig.dirname;
+    const maxlength = (preferences.value as Preferences).exportConfig.maxlength;
+
     const article = await getArticleByLink(articleUrl);
     const articleUpdateTime = dayjs.unix(article.update_time);
     const account = this.allAccountInfo.find(account => account.fakeid === article.fakeid);
@@ -880,11 +882,17 @@ ${commentHTML}
     }
 
     dirnameTpl = dirnameTpl.replace(/\$\{title}/g, filterInvalidFilenameChars(article.title));
+    dirnameTpl = dirnameTpl.replace(/\$\{aid}/g, article.aid);
+    dirnameTpl = dirnameTpl.replace(/\$\{author}/g, article.author_name);
     dirnameTpl = dirnameTpl.replace(/\$\{YYYY}/g, articleUpdateTime.format('YYYY'));
     dirnameTpl = dirnameTpl.replace(/\$\{MM}/g, articleUpdateTime.format('MM'));
     dirnameTpl = dirnameTpl.replace(/\$\{DD}/g, articleUpdateTime.format('DD'));
     dirnameTpl = dirnameTpl.replace(/\$\{HH}/g, articleUpdateTime.format('HH'));
     dirnameTpl = dirnameTpl.replace(/\$\{mm}/g, articleUpdateTime.format('mm'));
+
+    if (maxlength) {
+      return dirnameTpl.slice(0, maxlength);
+    }
     return dirnameTpl;
   }
 }
