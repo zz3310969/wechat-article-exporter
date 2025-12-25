@@ -9,15 +9,15 @@ const defaultOptions: Partial<Preferences> = {
   exportConfig: {
     dirname: '${title}',
     maxlength: 0,
-    exportExcelIncludeContent: false,
-    exportJsonIncludeComments: false,
-    exportJsonIncludeContent: false,
-    exportHtmlIncludeComments: false,
+    exportExcelIncludeContent: true,
+    exportJsonIncludeComments: true,
+    exportJsonIncludeContent: true,
+    exportHtmlIncludeComments: true,
   },
   downloadConfig: {
     forceDownloadContent: false,
   },
-  accountSyncSeconds: 5,
+  accountSyncSeconds: 3,
   syncDateRange: 'all',
   syncDatePoint: MP_ORIGIN_TIMESTAMP,
 };
