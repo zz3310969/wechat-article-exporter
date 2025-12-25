@@ -132,10 +132,10 @@ onUnmounted(() => {
         <span>登录信息过期时间还剩: </span>
         <span class="font-mono" :class="warning ? 'text-rose-500' : 'text-green-500'">{{ distance }}</span>
       </div>
-      <StorageUsage class="" />
     </div>
     <div v-else>
       <UButton color="gray" variant="solid" @click="login">登录公众号</UButton>
     </div>
+    <StorageUsage />
   </footer>
 </template>
