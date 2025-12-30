@@ -11,8 +11,11 @@ import type {
   PublishPage,
   SearchBizResponse,
 } from '~/types/types';
+import type { ParsedCredential } from '~/types/credential';
+import type { ParsedProfileGetMsg, ProfileGetMsgResponse } from '~/types/profile_getmsg';
 
 const loginAccount = useLoginAccount();
+const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 
 /**
  * 获取文章列表
@@ -118,5 +121,34 @@ export async function getComment(commentId: string) {
   } catch (e) {
     console.warn('credentials parse error', e);
     return null;
+  }
+}
+
+/**
+ * 获取公众号文章列表
+ * @description 该接口采用微信接口，而非公众号平台接口，因此需要先获取 Credentials
+ * @param fakeid
+ * @param begin
+ */
+export async function getArticleListWithCredential(fakeid: string, begin = 0) {
+  const targetCredential = credentials.value.find(item => item.biz === fakeid);
+  if (!targetCredential) {
+    throw new Error('目标公众号的 Credential 未设置');
+  }
+
+  const resp = await request<ProfileGetMsgResponse>('/api/web/mp/profile_ext_getmsg', {
+    query: {
+      id: fakeid,
+      begin: begin,
+      size: 10,
+      uin: targetCredential.uin,
+      key: targetCredential.key,
+      pass_ticket: targetCredential.pass_ticket,
+    },
+  });
+  if (resp.ret === 0) {
+    return JSON.parse(resp.general_msg_list) as ParsedProfileGetMsg[];
+  } else {
+    throw new Error(`${resp.ret}:${resp.errmsg}`);
   }
 }

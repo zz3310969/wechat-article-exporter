@@ -98,25 +98,38 @@
           <li
             v-for="credential in credentials"
             :key="credential.biz"
-            class="border rounded-md hover:ring ring-blue-500 hover:shadow-md transition-all duration-300 px-8 py-3"
+            class="relative flex items-center border rounded-md hover:ring ring-blue-500 hover:shadow-md transition-all duration-300 p-3 space-x-5"
           >
-            <p>公众号名称：{{ credential.nickname || '--' }}</p>
-            <p>fakeid: {{ credential.biz }}</p>
-            <p>获取时间: {{ credential.time }}</p>
-            <div class="flex items-center justify-between mt-4">
-              <span v-if="credential.valid" class="font-sans font-bold text-green-500">有效</span>
-              <span v-else class="font-sans font-bold text-rose-500">已过期</span>
-              <UButton
-                size="xs"
-                :color="credential.added ? 'green' : 'blue'"
-                :variant="credential.added ? 'soft' : 'solid'"
-                :disabled="credential.added || addingBiz === credential.biz"
-                :loading="addingBiz === credential.biz"
-                @click="addAccount(credential)"
-              >
-                {{ credential.added ? '已添加' : '添加公众号' }}
-              </UButton>
+            <div class="size-20 border rounded-full">
+              <img :src="credential.avatar" alt="" />
             </div>
+            <div class="flex-1">
+              <p>公众号名称：{{ credential.nickname || '--' }}</p>
+              <p>fakeid: {{ credential.biz }}</p>
+              <p>获取时间: {{ credential.time }}</p>
+              <div class="flex items-center justify-between mt-4">
+                <span v-if="credential.valid" class="font-sans font-bold text-green-500">有效</span>
+                <span v-else class="font-sans font-bold text-rose-500">已过期</span>
+                <UButton
+                  size="xs"
+                  :color="credential.added ? 'green' : 'blue'"
+                  :variant="credential.added ? 'soft' : 'solid'"
+                  :disabled="credential.added || addingBiz === credential.biz"
+                  :loading="addingBiz === credential.biz"
+                  @click="addAccount(credential)"
+                >
+                  {{ credential.added ? '已添加' : '添加公众号' }}
+                </UButton>
+              </div>
+            </div>
+            <UButton
+              v-if="isDev"
+              :loading="pullArticleLoading"
+              class="absolute top-3 right-3"
+              @click="pullData(credential.biz)"
+            >
+              拉取数据
+            </UButton>
           </li>
         </ul>
       </div>
@@ -126,11 +139,11 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs';
-import { getArticleList } from '~/apis';
+import { getArticleList, getArticleListWithCredential } from '~/apis';
 import LoginModal from '~/components/modal/Login.vue';
 import toastFactory from '~/composables/toast';
 import useLoginCheck from '~/composables/useLoginCheck';
-import { CREDENTIAL_API_HOST, CREDENTIAL_LIVE_MINUTES } from '~/config';
+import { CREDENTIAL_API_HOST, CREDENTIAL_LIVE_MINUTES, isDev } from '~/config';
 import { getInfoCache, type Info } from '~/store/v2/info';
 import type { ParsedCredential } from '~/types/credential';
 
@@ -142,6 +155,14 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false });
 const state = defineModel<CredentialState>('state', { default: 'inactive' });
+
+const pullArticleLoading = ref(false);
+async function pullData(fakeid: string) {
+  pullArticleLoading.value = true;
+  const articles = await getArticleListWithCredential(fakeid);
+  console.log(articles);
+  pullArticleLoading.value = false;
+}
 
 const tabs = [
   {
