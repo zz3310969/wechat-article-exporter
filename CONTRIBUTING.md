@@ -52,13 +52,14 @@ yarn dev
 2. 创建特性分支：`git checkout -b feature/你的功能描述` 或 `fix/你的修复描述`。
 3. 安装开发依赖并运行项目（参考 开发环境搭建）。
 4. 编写代码，确保：
+    - **仅提交必要文件**。
     - 遵循项目代码风格（使用 Prettier 工具）。
     - 添加或更新测试用例。
     - 通过所有测试：`yarn test`（或你的测试命令）。
 5. 提交时使用清晰的 Commit 消息。
 6. Push 到你的 Fork 并打开 Pull Request。
     - PR 标题和描述要清晰，引用相关 Issue（如 `fixes #123`）。
-    - 如果是重大更改，请先开 Issue 讨论。
+    - **如果是重大更改，请先开 Issue 讨论**。
 
 ### 3. 文档或翻译贡献
 - 文档请修改 [docs](https://github.com/wechat-article/docs) 项目
