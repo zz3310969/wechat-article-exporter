@@ -2,54 +2,19 @@
  * 公共代理节点
  */
 export const PUBLIC_PROXY_LIST: string[] = [
-  'https://00.worker-proxy.asia',
-  'https://01.worker-proxy.asia',
-  'https://02.worker-proxy.asia',
-  'https://03.worker-proxy.asia',
-  'https://04.worker-proxy.asia',
-  'https://05.worker-proxy.asia',
-  'https://06.worker-proxy.asia',
-  'https://07.worker-proxy.asia',
-  'https://08.worker-proxy.asia',
-  'https://09.worker-proxy.asia',
-  'https://10.worker-proxy.asia',
-  'https://11.worker-proxy.asia',
-  'https://12.worker-proxy.asia',
-  'https://13.worker-proxy.asia',
-  'https://14.worker-proxy.asia',
-  'https://15.worker-proxy.asia',
-
-  'https://00.net-proxy.asia',
-  'https://01.net-proxy.asia',
-  'https://02.net-proxy.asia',
-  'https://03.net-proxy.asia',
-  'https://04.net-proxy.asia',
-  'https://05.net-proxy.asia',
-  'https://06.net-proxy.asia',
-  'https://07.net-proxy.asia',
-  'https://08.net-proxy.asia',
-  'https://09.net-proxy.asia',
-  'https://10.net-proxy.asia',
-  'https://11.net-proxy.asia',
-  'https://12.net-proxy.asia',
-  'https://13.net-proxy.asia',
-  'https://14.net-proxy.asia',
-  'https://15.net-proxy.asia',
-
-  'https://00.workers-proxy.top',
-  'https://01.workers-proxy.top',
-  'https://02.workers-proxy.top',
-  'https://03.workers-proxy.top',
-  'https://04.workers-proxy.top',
-  'https://05.workers-proxy.top',
-  'https://06.workers-proxy.top',
-  'https://07.workers-proxy.top',
-  'https://08.workers-proxy.top',
-  'https://09.workers-proxy.top',
-  'https://10.workers-proxy.top',
-  'https://11.workers-proxy.top',
-  'https://12.workers-proxy.top',
-  'https://13.workers-proxy.top',
-  'https://14.workers-proxy.top',
-  'https://15.workers-proxy.top',
+  ...getDomainProxyList('worker-proxy.asia'),
+  ...getDomainProxyList('net-proxy.asia'),
+  ...getDomainProxyList('workers-proxy.top'),
+  ...getDomainProxyList('workers-proxy.shop'),
+  ...getDomainProxyList('workers-proxy-1.shop'),
+  ...getDomainProxyList('workers-proxy-2.shop'),
 ];
+
+// 生成从00.到15.的16个二级域名
+function getDomainProxyList(domain: string): string[] {
+  const list: string[] = [];
+  for (let i = 0; i < 16; i++) {
+    list.push(`https://${('0' + i).slice(-2)}.${domain}`);
+  }
+  return list;
+}
