@@ -5,5 +5,5 @@
  */
 
 export default defineEventHandler(async event => {
-  return await fetch('https://my-cron-service.deno.dev/api/worker-proxy').then(res => res.json());
+  return await fetch('https://my-cron-service.deno.dev/api/worker-metrics?key=worker-metrics').then(res => res.json());
 });
