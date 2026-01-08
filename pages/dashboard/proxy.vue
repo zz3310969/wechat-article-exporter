@@ -7,7 +7,7 @@
     <div class="flex flex-col h-full divide-y divide-gray-200">
       <!-- header -->
       <header class="flex justify-between items-center px-4 py-5 sm:px-6">
-        <h2 class="text-2xl font-semibold">运行状况</h2>
+        <h2 class="text-2xl font-semibold">统计信息</h2>
 
         <p class="font-serif font-bold">可用: {{ totalSuccess }}，不可用: {{ totalFailure }}</p>
       </header>
