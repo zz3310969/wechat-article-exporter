@@ -58,6 +58,16 @@ const accountMetrics: AccountMetricWithExtra[] = reactive(
   props.data.map((account: AccountMetric) => ({ ...account, copied: false }))
 );
 
+watch(
+  () => props.data,
+  () => {
+    Object.assign(
+      accountMetrics,
+      props.data.map((account: AccountMetric) => ({ ...account, copied: false }))
+    );
+  }
+);
+
 function copyAddress(account: AccountMetric & { copied: boolean }) {
   let result: string[] = [];
   for (let i = 0; i < 16; i++) {
