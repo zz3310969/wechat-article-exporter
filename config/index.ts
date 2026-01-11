@@ -1,3 +1,15 @@
+import dayjs from 'dayjs';
+
+/**
+ * 是否在开发环境
+ */
+export const isDev = process.env.NODE_ENV === 'development';
+
+/**
+ * 网站标题
+ */
+export const websiteName = '公众号文章导出';
+
 /**
  * 文章列表每页大小，20为最大有效值
  */
@@ -12,39 +24,51 @@ export const ACCOUNT_LIST_PAGE_SIZE = 5;
  * 公众号类型
  */
 export const ACCOUNT_TYPE: Record<number, string> = {
-    0: '订阅号',
-    1: '订阅号',
-    2: '服务号'
-}
+  0: '订阅号',
+  1: '订阅号',
+  2: '服务号',
+};
 
 /**
- * 公共代理
+ * Credentials 生存时间，单位：分钟
  */
-export const AVAILABLE_PROXY_LIST: string[] = [
-    'https://wproxy-01.deno.dev/',
-    'https://wproxy-02.deno.dev/',
-    'https://wproxy-03.deno.dev/',
-    'https://wproxy-04.deno.dev/',
-    'https://wproxy-05.deno.dev/',
-    'https://wproxy-06.deno.dev/',
-    'https://wproxy-07.deno.dev/',
-    'https://wproxy-08.deno.dev/',
-    'https://wproxy-09.deno.dev/',
-    'https://wproxy-10.deno.dev/',
-]
-
-export const IMAGE_REFERER_PROXY = 'https://lingering-haze-9880.sonaliyadav.workers.dev/'
+export const CREDENTIAL_LIVE_MINUTES: number = 25;
 
 /**
- * 扫码状态
+ * Credentials 服务器主机地址
  */
-const SCAN_LOGIN_TYPE = {
-    0: '等待扫码',
-    1: '扫码成功，可登录账号=1',
-    2: '扫码成功，可登录账号>1',
-    3: '没有可登录账号',
-    4: '登录失败',
-    5: '二维码已过期',
-    6: '二维码加载失败',
-    7: 'qq号需要绑定邮箱',
-}
+export const CREDENTIAL_API_HOST = 'http://127.0.0.1:8088';
+
+/**
+ * 文档站点地址
+ */
+export const docsWebSite = 'https://docs.mptext.top';
+
+// 图片代理服务 todo: 这个可以在设置里增加一个配置项，网站是否启用图片代理，否的话置空即可。相应的，可以与 no-referer 配置互斥。
+// export const IMAGE_PROXY = 'https://image.baidu.com/search/down?thumburl=';
+export const IMAGE_PROXY = '';
+
+/**
+ * 转发微信公众号请求时，使用的 user-agent 字符串
+ */
+export const USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 WAE/1.0';
+
+/**
+ * 微信公众号上线时间 2012-08-23
+ */
+export const MP_ORIGIN_TIMESTAMP = dayjs('2012-08-23 00:00:00').unix();
+
+/**
+ * 文章显示类型
+ */
+export const ITEM_SHOW_TYPE: Record<number, string> = {
+  0: '普通图文',
+  5: '视频分享',
+  6: '音乐分享',
+  7: '音频分享',
+  8: '图片分享',
+  10: '文本分享',
+  11: '文章分享',
+  17: '短文',
+};

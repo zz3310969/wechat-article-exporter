@@ -1,37 +1,30 @@
 <template>
-  <div :class="isDev ? 'debug-screens' : ''">
+  <div :class="isDev ? 'debug-screens' : ''" class="flex flex-col h-screen">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
 
     <UNotifications />
+    <UModals />
   </div>
 </template>
 
 <script setup lang="ts">
-const isDev = !import.meta.env.PROD
-const runtimeConfig = useRuntimeConfig()
+import { ModuleRegistry } from 'ag-grid-community';
+import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
+import { isDev } from '~/config';
+import { isChromeBrowser } from '~/utils';
 
-const websiteID = runtimeConfig.public.umamiWebsiteID
+const runtimeConfig = useRuntimeConfig();
 
-if (!useLoginAccount().value) {
-  navigateTo('/login', {replace: true})
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+LicenseManager.setLicenseKey(runtimeConfig.public.aggridLicense);
+
+if (!isChromeBrowser()) {
+  alert('为了更好的用户体验，推荐使用 Chrome 浏览器。');
 }
-
-useHead({
-  script: [
-    websiteID ?
-    {
-      src: 'https://cloud.umami.is/script.js',
-      defer: true,
-      'data-website-id': websiteID
-    } : '',
-  ]
-})
 </script>
 
 <style>
-.highlight {
-  color: red;
-}
+@import 'style.css';
 </style>
