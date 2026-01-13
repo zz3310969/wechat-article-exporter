@@ -24,7 +24,7 @@ import { IMAGE_PROXY, websiteName } from '~/config';
 import { sharedGridOptions } from '~/config/shared-grid-options';
 import { deleteAccountData } from '~/store/v2';
 import { getArticleCache, hitCache } from '~/store/v2/article';
-import { getAllInfo, getInfoCache, type Info, importInfos } from '~/store/v2/info';
+import { getAllInfo, getInfoCache, type MpAccount, importMpAccounts } from '~/store/v2/info';
 import type { AccountManifest } from '~/types/account';
 import type { Preferences } from '~/types/preferences';
 import { exportAccountJsonFile } from '~/utils/exporter';
@@ -64,12 +64,12 @@ function addAccount() {
 
   searchAccountDialogRef.value!.open();
 }
-async function onSelectAccount(account: Info) {
+async function onSelectAccount(account: MpAccount) {
   addBtnLoading.value = true;
   await loadAccountArticle(account, false);
   await refresh();
   addBtnLoading.value = false;
-  toast.success('公众号添加成功', `已成功添加公众号【${account.nickname}】，并拉取了第一页文章数据`);
+  toast.success('公众号添加成功', `已成功添加公众号【${account.nickname}】，并同步了第一页的文章数据`);
   // 通知 Credentials 面板按钮立即变更为“已添加”
   accountEventBus.emit('account-added', { fakeid: account.fakeid });
 }
@@ -84,7 +84,7 @@ const syncingRowId = ref<string | null>(null);
 
 const syncTimer = ref<number | null>(null);
 
-async function _load(account: Info, begin: number, loadMore: boolean, promise: PromiseInstance) {
+async function _load(account: MpAccount, begin: number, loadMore: boolean, promise: PromiseInstance) {
   if (isCanceled.value) {
     isCanceled.value = false; // 这里需要将状态复位
     promise.reject(new Error('已取消同步'));
@@ -152,7 +152,7 @@ async function _load(account: Info, begin: number, loadMore: boolean, promise: P
 }
 
 // 同步指定公众号
-async function loadAccountArticle(account: Info, loadMore = true) {
+async function loadAccountArticle(account: MpAccount, loadMore = true) {
   return new Promise((resolve, reject) => {
     const promise: PromiseInstance = { resolve, reject };
 
@@ -185,7 +185,7 @@ async function loadSelectedAccountArticle() {
   }
 }
 
-let globalRowData: Info[] = [];
+let globalRowData: MpAccount[] = [];
 
 const columnDefs = ref<ColDef[]>([
   {
@@ -259,7 +259,7 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     colId: 'count',
-    headerName: '已加载消息数',
+    headerName: '已同步消息数',
     field: 'count',
     cellDataType: 'number',
     cellRenderer: 'agAnimateShowChangeCellRenderer',
@@ -269,7 +269,7 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     colId: 'articles',
-    headerName: '已加载文章数',
+    headerName: '已同步文章数',
     field: 'articles',
     cellDataType: 'number',
     cellRenderer: 'agAnimateShowChangeCellRenderer',
@@ -280,7 +280,7 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     colId: 'load_percent',
-    headerName: '加载进度',
+    headerName: '同步进度',
     valueGetter: params => (params.data.total_count === 0 ? 0 : params.data.count / params.data.total_count),
     cellDataType: 'number',
     cellRenderer: GridLoadProgress,
@@ -289,11 +289,11 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     colId: 'completed',
-    headerName: '已加载完成',
+    headerName: '已同步完成',
     field: 'completed',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
-    filterParams: createBooleanColumnFilterParams('已加载完成', '未加载完成'),
+    filterParams: createBooleanColumnFilterParams('已同步完成', '未同步完成'),
     cellClass: 'flex justify-center items-center',
     headerClass: 'justify-center',
     minWidth: 150,
@@ -394,7 +394,7 @@ function onSelectionChanged(evt: SelectionChangedEvent) {
   hasSelectedRows.value = (evt.selectedNodes?.map(node => node.data) || []).length > 0;
 }
 function getSelectedRows() {
-  const rows: Info[] = [];
+  const rows: MpAccount[] = [];
   gridApi.value?.forEachNodeAfterFilterAndSort(node => {
     if (node.isSelected()) {
       rows.push(node.data);
@@ -452,7 +452,7 @@ async function handleFileChange(evt: Event) {
         return;
       }
 
-      await importInfos(infos);
+      await importMpAccounts(infos);
       await refresh();
     } catch (error) {
       console.error('导入公众号时 JSON 解析失败:', error);

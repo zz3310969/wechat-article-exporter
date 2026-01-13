@@ -166,6 +166,9 @@ export interface AppMsgEx {
 
 export type AppMsgExWithFakeID = AppMsgEx & {
   fakeid: string;
+
+  // 文章状态
+  _status: string;
 };
 
 export interface DownloadableArticle {

@@ -7,7 +7,7 @@ import { bestConcurrencyCount } from '~/utils';
 import { extractCommentId } from '~/utils/comment';
 import { DEFAULT_OPTIONS } from './constants';
 import { ProxyManager } from './ProxyManager';
-import type { DownloaderStatus, DownloadOptions, Listener } from './types';
+import type { DownloaderStatus, DownloadOptions, Callback } from './types';
 
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
@@ -16,21 +16,20 @@ const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Prefere
 // 支持下载文章HTML、阅读量、留言列表
 // 注意：
 //   1. 文章HTML可并发下载
-//   2. 阅读量和留言数据由于使用了Credential，为了防止抓取过快，只能设置较低的并发量（通常为2）
+//   2. 阅读量和留言数据由于使用了Credential，为了防止抓取过快，只能设置较低的并发量（通常为5）
 
-export class BaseDownload {
-  // protected readonly fakeid: string;
-  protected readonly urls: string[];
+export class BaseDownloader {
+  protected readonly urls: string[]; // 需要爬取的文章url列表
   protected readonly pending: Set<string>;
   protected readonly completed: Set<string>;
-  protected readonly failed: Set<string>;
+  protected readonly failed: Set<string>; // 文章抓取异常列表
   protected readonly deleted: Set<string>;
 
   protected readonly options: Required<DownloadOptions>;
-  protected isProcessing: boolean;
-  protected readonly abortControllers: Map<string, AbortController>;
+  protected isRunning: boolean;
+  protected readonly abortControllers: Map<string, AbortController>; // 每个文章url对应一个controller，方便进行取消
   public readonly proxyManager: ProxyManager;
-  protected events: Map<string, Listener[]>;
+  protected events: Map<string, Callback[]>;
 
   constructor(urls: string[], options: DownloadOptions = {}) {
     this.validateInputs(urls);
@@ -41,13 +40,12 @@ export class BaseDownload {
       proxies.push(...PUBLIC_PROXY_LIST);
     }
 
-    // this.fakeid = fakeid;
     this.urls = [...urls].reverse();
     this.pending = new Set();
     this.completed = new Set();
     this.failed = new Set();
     this.deleted = new Set();
-    this.isProcessing = false;
+    this.isRunning = false;
     this.abortControllers = new Map();
     this.events = new Map();
 
@@ -67,7 +65,7 @@ export class BaseDownload {
    * @param type 事件类型
    * @param listener 监听器
    */
-  public on(type: string, listener: Listener) {
+  public on(type: string, listener: Callback) {
     if (!this.events.has(type)) {
       this.events.set(type, []);
     }
@@ -79,7 +77,7 @@ export class BaseDownload {
    * @param type 事件类型
    * @param listener 监听器
    */
-  public off(type: string, listener?: Listener) {
+  public off(type: string, listener?: Callback) {
     if (!this.events.has(type)) {
       return;
     }

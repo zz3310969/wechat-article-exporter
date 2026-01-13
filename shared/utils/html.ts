@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 
 /**
  * 处理文章的 html 内容
- * @description 服务端采用 cheerio 库解析并修改 html 内容
+ * @description 采用 cheerio 库解析并修改 html 内容
  * @param rawHTML 公众号文章的原始 html
  * @param format 要处理的格式
  * @remarks 服务端工具函数
@@ -89,4 +89,34 @@ export function normalizeHtml(rawHTML: string, format: 'html' | 'text' = 'html')
   } else {
     throw new Error(`format not supported: ${format}`);
   }
+}
+
+/**
+ * 验证文章的 html 内容是否下载完整
+ * @param html
+ * @return [状态，文章评论id] 二元组
+ */
+export function validateHTMLContent(html: string): ['Success' | 'Failure' | 'Deleted' | 'Checking', string | null] {
+  const parser = new DOMParser();
+  const document = parser.parseFromString(html, 'text/html');
+  const $jsContent = document.querySelector('#js_content');
+  const $layout = document.querySelector('#js_fullscreen_layout_padding');
+  const $title = document.querySelector('head > title')!.textContent;
+
+  let commentID = null;
+  const commentIdMatchResult = html.match(/var comment_id = '(?<comment_id>\d+)' \|\| '0';/);
+  if (commentIdMatchResult && commentIdMatchResult.groups && commentIdMatchResult.groups.comment_id) {
+    commentID = commentIdMatchResult.groups.comment_id;
+  }
+
+  if ($jsContent) {
+    return ['Success', commentID];
+  }
+  if ($layout || $title === '该页面不存在') {
+    return ['Deleted', null];
+  }
+  if ($title === '内容审核中') {
+    return ['Checking', null];
+  }
+  return ['Failure', null];
 }

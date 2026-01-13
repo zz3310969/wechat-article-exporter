@@ -5,13 +5,13 @@ import { filterInvalidFilenameChars, sleep } from '#shared/utils/helpers';
 import usePreferences from '~/composables/usePreferences';
 import { getArticleByLink } from '~/store/v2/article';
 import { getHtmlCache, type HtmlAsset } from '~/store/v2/html';
-import { getAccountNameByFakeid, getAllInfo, type Info } from '~/store/v2/info';
+import { getAccountNameByFakeid, getAllInfo, type MpAccount } from '~/store/v2/info';
 import { getMetadataCache } from '~/store/v2/metadata';
 import { getResourceCache, updateResourceCache } from '~/store/v2/resource';
 import { getResourceMapCache, updateResourceMapCache } from '~/store/v2/resource-map';
 import type { Preferences } from '~/types/preferences';
 import { getArticleComments, renderComments } from '~/utils/comment';
-import { BaseDownload } from '~/utils/download/BaseDownload';
+import { BaseDownloader } from '~/utils/download/BaseDownloader';
 import { type ExcelExportEntity, export2ExcelFile, export2JsonFile } from '~/utils/exporter';
 import type { DownloadOptions } from './types';
 
@@ -20,9 +20,9 @@ type ExportType = 'excel' | 'json' | 'html' | 'txt' | 'markdown' | 'word' | 'pdf
 
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
 
-export class Exporter extends BaseDownload {
+export class Exporter extends BaseDownloader {
   private exportType: ExportType = 'html';
-  private allAccountInfo: Info[] = [];
+  private allAccountInfo: MpAccount[] = [];
 
   // 导出的根目录
   private exportRootDirectoryHandle: FileSystemDirectoryHandle | null = null;
@@ -35,7 +35,7 @@ export class Exporter extends BaseDownload {
 
   // 启动导出任务
   public async startExport(type: ExportType = 'html') {
-    if (this.isProcessing) {
+    if (this.isRunning) {
       throw new Error('导出任务正在运行中，无需重复启动');
     }
 
@@ -50,7 +50,7 @@ export class Exporter extends BaseDownload {
     }
 
     this.exportType = type;
-    this.isProcessing = true;
+    this.isRunning = true;
     const start = Date.now();
     this.emit('export:begin');
 
@@ -81,7 +81,7 @@ export class Exporter extends BaseDownload {
         await this.exportPdfFiles();
       }
     } finally {
-      this.isProcessing = false;
+      this.isRunning = false;
       const elapse = Math.round((Date.now() - start) / 1000);
       this.emit('export:finish', elapse);
       this.cancelAllPending();

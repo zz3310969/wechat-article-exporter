@@ -28,10 +28,10 @@
 <script setup lang="ts">
 import { IMAGE_PROXY } from '~/config';
 import { getArticleCache } from '~/store/v2/article';
-import { getAllInfo, type Info } from '~/store/v2/info';
+import { getAllInfo, type MpAccount } from '~/store/v2/info';
 import type { AppMsgAlbumInfo } from '~/types/types';
 
-interface AccountInfo extends Info {
+interface AccountInfo extends MpAccount {
   albums?: AppMsgAlbumInfo[];
 }
 

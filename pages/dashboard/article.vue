@@ -24,13 +24,13 @@ import GridStatusBar from '~/components/grid/StatusBar.vue';
 import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
 import { isDev, websiteName } from '~/config';
 import { sharedGridOptions } from '~/config/shared-grid-options';
-import { articleDeleted, getArticleCache } from '~/store/v2/article';
+import { articleDeleted, getArticleCache, updateArticleStatus } from '~/store/v2/article';
 import { getCommentCache } from '~/store/v2/comment';
 import { getHtmlCache } from '~/store/v2/html';
-import { type Info } from '~/store/v2/info';
+import { type MpAccount } from '~/store/v2/info';
 import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { Preferences } from '~/types/preferences';
-import type { AppMsgEx } from '~/types/types';
+import type { AppMsgExWithFakeID } from '~/types/types';
 import type { ArticleMetadata } from '~/utils/download/types';
 import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
 
@@ -39,12 +39,7 @@ useHead({
 });
 
 // 当前页面的数据模型
-interface Article extends AppMsgEx, Partial<ArticleMetadata> {
-  /**
-   * 公众号id
-   */
-  fakeid: string;
-
+interface Article extends AppMsgExWithFakeID, Partial<ArticleMetadata> {
   /**
    * 文章内容是否已下载
    */
@@ -139,6 +134,18 @@ const columnDefs = ref<ColDef[]>([
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
     filterParams: createBooleanColumnFilterParams('已删除', '未删除'),
+    minWidth: 150,
+    initialHide: true,
+    cellClass: 'flex justify-center items-center',
+  },
+  {
+    headerName: '文章状态',
+    field: '_status',
+    valueFormatter: p => formatItemShowType(p.value),
+    filter: 'agSetColumnFilter',
+    filterParams: {
+      valueFormatter: (p: ValueFormatterParams) => formatItemShowType(p.value),
+    },
     minWidth: 150,
     initialHide: true,
     cellClass: 'flex justify-center items-center',
@@ -331,7 +338,7 @@ function preview(article: Article) {
 const loading = ref(false);
 
 // 只能选择单个账号
-const selectedAccount = ref<Info | undefined>();
+const selectedAccount = ref<MpAccount | undefined>();
 
 watch(selectedAccount, newVal => {
   switchTableData(newVal!.fakeid).catch(() => {});
@@ -397,20 +404,22 @@ const {
       console.warn(`${url} not found in table data when update contentDownload`);
     }
   },
+  onStatusChange(url: string, status: string) {
+    const article = globalRowData.find(article => article.link === url);
+    if (article) {
+      article._status = status;
+      updateRow(article);
+
+      updateArticleStatus(url, status);
+    }
+  },
   onDelete(url: string) {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.is_deleted = true;
-      articleDeleted(url);
       updateRow(article);
-    }
-  },
-  onChecking(url: string) {
-    const article = globalRowData.find(article => article.link === url);
-    if (article) {
-      article.is_deleted = true;
+
       articleDeleted(url);
-      updateRow(article);
     }
   },
   onMetadata(url: string, metadata: Metadata) {

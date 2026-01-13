@@ -10,7 +10,7 @@ import { updateMetadataCache } from '~/store/v2/metadata';
 import type { CommentResponse, ReplyResponse } from '~/types/comment';
 import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
-import { BaseDownload } from '~/utils/download/BaseDownload';
+import { BaseDownloader } from '~/utils/download/BaseDownloader';
 import type { DownloadOptions } from './types';
 
 type DownloadType = 'html' | 'metadata' | 'comments';
@@ -18,7 +18,7 @@ type DownloadType = 'html' | 'metadata' | 'comments';
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
 
-export class Downloader extends BaseDownload {
+export class Downloader extends BaseDownloader {
   // 下载的类型
   private downloadType: DownloadType = 'html';
 
@@ -30,12 +30,12 @@ export class Downloader extends BaseDownload {
 
   // 启动抓取任务
   public async startDownload(type: DownloadType) {
-    if (this.isProcessing) {
+    if (this.isRunning) {
       throw new Error('下载任务正在运行中，无需重复启动');
     }
     this.downloadType = type;
 
-    this.isProcessing = true;
+    this.isRunning = true;
     const start = Date.now();
     this.emit('download:begin');
     if (['metadata', 'comments'].includes(this.downloadType) && this.options.concurrency > 5) {
@@ -46,7 +46,7 @@ export class Downloader extends BaseDownload {
     try {
       await this.processDownloadQueue();
     } finally {
-      this.isProcessing = false;
+      this.isRunning = false;
       const elapse = Math.round((Date.now() - start) / 1000);
       this.emit('download:finish', elapse, this.getStatus());
       this.cancelAllPending();

@@ -144,7 +144,7 @@ import LoginModal from '~/components/modal/Login.vue';
 import toastFactory from '~/composables/toast';
 import useLoginCheck from '~/composables/useLoginCheck';
 import { CREDENTIAL_API_HOST, CREDENTIAL_LIVE_MINUTES, isDev } from '~/config';
-import { getInfoCache, type Info } from '~/store/v2/info';
+import { getInfoCache, type MpAccount } from '~/store/v2/info';
 import type { ParsedCredential } from '~/types/credential';
 
 export type CredentialState = 'active' | 'inactive' | 'warning';
@@ -481,7 +481,7 @@ async function addAccount(credential: ParsedCredential) {
 
   addingBiz.value = credential.biz;
   const nickname = credential.nickname || credential.biz;
-  const account: Info = {
+  const account: MpAccount = {
     fakeid: credential.biz,
     completed: false,
     count: 0,
