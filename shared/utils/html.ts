@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { Window } from 'happy-dom';
 import { extractCommentId } from '~/utils/comment';
 
 /**
@@ -121,4 +122,45 @@ export function validateHTMLContent(html: string): ['Success' | 'Deleted' | 'Exc
   } else {
     return ['Error', null];
   }
+}
+
+// 识别文章的类型
+function detectArticleType(html: string) {}
+
+function parseCgiDataNewClient(html: string): Promise<any> {
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.srcdoc = html;
+  document.body.appendChild(iframe);
+
+  return new Promise((resolve, reject) => {
+    iframe.onload = function () {
+      // @ts-ignore
+      const data = iframe.contentWindow.cgiDataNew;
+
+      // 用完后清理
+      document.body.removeChild(iframe);
+      resolve(data);
+    };
+    iframe.onerror = function (e) {
+      reject(e);
+    };
+  });
+}
+
+// 解析 html 中的 window.cgiDataNew 对象
+export function parseCgiDataNewServer(html: string): any {
+  const window = new Window();
+
+  // 关键：显式启用 JavaScript 执行
+  // @ts-ignore – happyDOM 是内部属性，但社区广泛使用
+  window.happyDOM.settings.enableJavaScriptEvaluation = true;
+
+  window.document.write(html);
+  window.document.close();
+
+  const data = (window as any).cgiDataNew;
+  window.close();
+
+  return data;
 }
