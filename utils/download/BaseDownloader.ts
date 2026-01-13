@@ -4,7 +4,6 @@ import { PUBLIC_PROXY_LIST } from '~/config/public-proxy';
 import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
 import { bestConcurrencyCount } from '~/utils';
-import { extractCommentId } from '~/utils/comment';
 import { DEFAULT_OPTIONS } from './constants';
 import { ProxyManager } from './ProxyManager';
 import type { DownloaderStatus, DownloadOptions, Callback } from './types';
@@ -20,10 +19,10 @@ const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Prefere
 
 export class BaseDownloader {
   protected readonly urls: string[]; // 需要爬取的文章url列表
-  protected readonly pending: Set<string>;
-  protected readonly completed: Set<string>;
+  protected readonly pending: Set<string>; // 文章抓取中列表
+  protected readonly completed: Set<string>; // 文章抓取成功列表
   protected readonly failed: Set<string>; // 文章抓取异常列表
-  protected readonly deleted: Set<string>;
+  protected readonly deleted: Set<string>; // 文章已删除列表
 
   protected readonly options: Required<DownloadOptions>;
   protected isRunning: boolean;
@@ -186,27 +185,5 @@ export class BaseDownloader {
     if (!targetCredential) {
       throw new Error('目标公众号的 Credential 未设置');
     }
-  }
-
-  // 验证文章 html 内容是否下载完整
-  protected validateHTMLContent(html: string): ['Success' | 'Failure' | 'Deleted' | 'Checking', string | null] {
-    const parser = new DOMParser();
-    const document = parser.parseFromString(html, 'text/html');
-    const $jsContent = document.querySelector('#js_content');
-    const $layout = document.querySelector('#js_fullscreen_layout_padding');
-    const $title = document.querySelector('head > title')!.textContent;
-
-    const commentID = extractCommentId(html);
-
-    if ($jsContent) {
-      return ['Success', commentID];
-    }
-    if ($layout || $title === '该页面不存在') {
-      return ['Deleted', null];
-    }
-    if ($title === '内容审核中') {
-      return ['Checking', null];
-    }
-    return ['Failure', null];
   }
 }

@@ -12,6 +12,7 @@ import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
 import { BaseDownloader } from '~/utils/download/BaseDownloader';
 import type { DownloadOptions } from './types';
+import { validateHTMLContent } from '#shared/utils/html';
 
 type DownloadType = 'html' | 'metadata' | 'comments';
 
@@ -134,7 +135,7 @@ export class Downloader extends BaseDownloader {
       try {
         const blob = await this.download(article.fakeid, url, proxy, false);
         const html = await blob.text();
-        const [status, commentID] = this.validateHTMLContent(html);
+        const [status, commentID] = validateHTMLContent(html);
         if (status === 'Success') {
           // 下载成功
           await updateHtmlCache({
@@ -151,41 +152,40 @@ export class Downloader extends BaseDownloader {
         } else if (status === 'Deleted') {
           // 文章被删除
           console.warn(`文章(url: ${url} )已被删除`);
-          await updateDebugCache({
-            fakeid: article.fakeid,
-            type: 'deleted',
-            url: url,
-            title: article.title,
-            file: blob,
-          });
+
           // 通知外边更新删除状态
           this.emit('download:deleted', url);
           this.pending.delete(url);
           this.deleted.add(url);
           this.proxyManager.recordSuccess(proxy);
           return;
-        } else if (status === 'Checking') {
-          // 内容审核中(大概率也跟删除没啥区别)
-          console.warn(`文章(url: ${url} )内容审核中`);
+        } else if (status === 'Exception' && commentID) {
+          // 文章状态异常
+          console.warn(`文章(url: ${url} )状态异常: ${commentID}`);
+
+          // 通知外边更新文章状态
+          this.emit('download:exception', url, commentID);
+          this.pending.delete(url);
+          this.failed.add(url);
+          this.proxyManager.recordSuccess(proxy);
+          return;
+        } else if (status === 'Exception' && !commentID) {
+          // 文章下载失败(风控导致的)
+          console.warn(`文章(url: ${url} )下载失败(风控所致)`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'checking',
+            type: `exception:${commentID}`,
             url: url,
             title: article.title,
             file: blob,
           });
-          // 通知外边更新删除状态
-          this.emit('download:checking', url);
-          this.pending.delete(url);
-          this.deleted.add(url);
-          this.proxyManager.recordSuccess(proxy);
-          return;
-        } else if (status === 'Failure') {
+          throwException(`文章(url: ${url} )下载失败`);
+        } else if (status === 'Error') {
           // 下载失败
           console.warn(`文章(url: ${url} )解析失败`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'failure',
+            type: 'parse error',
             url: url,
             title: article.title,
             file: blob,
@@ -227,7 +227,7 @@ export class Downloader extends BaseDownloader {
       try {
         const blob = await this.download(article.fakeid, url, proxy, true);
         const html = await blob.text();
-        const [status, commentID] = this.validateHTMLContent(html);
+        const [status, commentID] = validateHTMLContent(html);
         if (status === 'Success') {
           // 下载成功
           await this.processHtmlMetadata(blob, url);
@@ -246,41 +246,40 @@ export class Downloader extends BaseDownloader {
         } else if (status === 'Deleted') {
           // 文章被删除
           console.warn(`获取阅读量时发现文章(url: ${url} )已被删除`);
-          await updateDebugCache({
-            fakeid: article.fakeid,
-            type: 'deleted',
-            url: url,
-            title: article.title,
-            file: blob,
-          });
+
           // 通知外边更新删除状态
           this.emit('download:deleted', url);
           this.pending.delete(url);
           this.deleted.add(url);
           this.proxyManager.recordSuccess(proxy);
           return;
-        } else if (status === 'Checking') {
-          // 内容审核中(大概率也跟删除没啥区别)
-          console.warn(`获取阅读量时发现文章(url: ${url} )内容审核中`);
+        } else if (status === 'Exception' && commentID) {
+          // 文章状态异常
+          console.warn(`获取阅读量时发现文章(url: ${url} )状态异常: ${commentID}`);
+
+          // 通知外边更新文章状态
+          this.emit('download:exception', url, commentID);
+          this.pending.delete(url);
+          this.failed.add(url);
+          this.proxyManager.recordSuccess(proxy);
+          return;
+        } else if (status === 'Exception' && !commentID) {
+          // 文章下载失败(风控导致的)
+          console.warn(`文章(url: ${url} )下载失败(风控所致)`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'checking',
+            type: `exception:${commentID}`,
             url: url,
             title: article.title,
             file: blob,
           });
-          // 通知外边更新删除状态
-          this.emit('download:checking', url);
-          this.pending.delete(url);
-          this.deleted.add(url);
-          this.proxyManager.recordSuccess(proxy);
-          return;
-        } else if (status === 'Failure') {
+          throwException(`文章(url: ${url} )下载失败`);
+        } else if (status === 'Error') {
           // 下载文章失败，需要重试
           console.warn(`获取阅读量时发现文章(url: ${url} )解析失败`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'failure',
+            type: 'parse error',
             url: url,
             title: article.title,
             file: blob,

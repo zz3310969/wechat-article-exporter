@@ -14,7 +14,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import dayjs from 'dayjs';
 import { onMounted } from 'vue';
 import { formatElapsedTime, formatTimeStamp } from '#shared/utils/helpers';
-import GridActions from '~/components/grid/Actions.vue';
+import GridArticleActions from '~/components/grid/ArticleActions.vue';
 import GridLoading from '~/components/grid/Loading.vue';
 import GridNoRows from '~/components/grid/NoRows.vue';
 import PreviewArticle from '~/components/preview/Article.vue';
@@ -25,6 +25,11 @@ import type { AppMsgExWithFakeID } from '~/types/types';
 import { Downloader } from '~/utils/download/Downloader';
 import { Exporter } from '~/utils/download/Exporter';
 import type { ArticleMetadata, DownloaderStatus } from '~/utils/download/types';
+import { websiteName } from '~/config';
+
+useHead({
+  title: `单篇文章下载 | ${websiteName}`,
+});
 
 type ExportFormat = 'html' | 'excel' | 'json';
 
@@ -106,7 +111,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'link',
     sortable: false,
     filter: false,
-    cellRenderer: GridActions,
+    cellRenderer: GridArticleActions,
     cellRendererParams: {
       onPreview: (params: ICellRendererParams) => {
         previewRow(params.data as SingleArticleRow);
@@ -159,10 +164,6 @@ const exportBtnLoading = ref(false);
 const exportPhase = ref('');
 const downloadProgressCurrent = ref(0);
 const downloadProgressTotal = ref(0);
-
-useHead({
-  title: '单篇文章下载',
-});
 
 function refreshGrid() {
   gridApi.value?.setGridOption('rowData', rows.value);
@@ -268,6 +269,7 @@ async function addArticle() {
 function buildVirtualArticle(row: SingleArticleRow): AppMsgExWithFakeID {
   return {
     fakeid: row.fakeid,
+    _status: '',
     aid: row.aid,
     album_id: '',
     appmsg_album_infos: [],

@@ -14,10 +14,9 @@ import type {
 import { AgGridVue } from 'ag-grid-vue3';
 import { defu } from 'defu';
 import type { PreviewArticle } from '#components';
-import { readBlob } from '#shared/utils';
 import { durationToSeconds, formatItemShowType, formatTimeStamp, sleep } from '#shared/utils/helpers';
-import { normalizeHtml } from '#shared/utils/html';
-import GridActions from '~/components/grid/Actions.vue';
+import { validateHTMLContent } from '#shared/utils/html';
+import GridArticleActions from '~/components/grid/ArticleActions.vue';
 import GridAlbum from '~/components/grid/Album.vue';
 import GridCoverTooltip from '~/components/grid/CoverTooltip.vue';
 import GridStatusBar from '~/components/grid/StatusBar.vue';
@@ -33,6 +32,7 @@ import type { Preferences } from '~/types/preferences';
 import type { AppMsgExWithFakeID } from '~/types/types';
 import type { ArticleMetadata } from '~/utils/download/types';
 import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
+import { getDebugCache } from '~/store/v2/debug';
 
 useHead({
   title: `文章下载 | ${websiteName}`,
@@ -141,10 +141,10 @@ const columnDefs = ref<ColDef[]>([
   {
     headerName: '文章状态',
     field: '_status',
-    valueFormatter: p => formatItemShowType(p.value),
+    valueFormatter: p => p.value,
     filter: 'agSetColumnFilter',
     filterParams: {
-      valueFormatter: (p: ValueFormatterParams) => formatItemShowType(p.value),
+      valueFormatter: (p: ValueFormatterParams) => p.value,
     },
     minWidth: 150,
     initialHide: true,
@@ -263,7 +263,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'link',
     sortable: false,
     filter: false,
-    cellRenderer: GridActions,
+    cellRenderer: GridArticleActions,
     cellRendererParams: {
       onPreview: (params: ICellRendererParams) => {
         preview(params.data);
@@ -399,7 +399,14 @@ const {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.contentDownload = true;
+      article._status = '正常';
       updateRow(article);
+
+      updateArticleStatus(url, '正常');
+
+      // 修复之前代码逻辑错误导致的数据库状态被误设置为【已删除】
+      article.is_deleted = false;
+      articleDeleted(url, false);
     } else {
       console.warn(`${url} not found in table data when update contentDownload`);
     }
@@ -417,8 +424,10 @@ const {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.is_deleted = true;
+      article._status = '已删除';
       updateRow(article);
 
+      updateArticleStatus(url, '已删除');
       articleDeleted(url);
     }
   },
@@ -455,11 +464,13 @@ const {
 } = useExporter();
 
 async function debug() {
-  const cache = await getHtmlCache('https://mp.weixin.qq.com/s/Uzr9f6SRQ_H1qM812vYXdg');
+  const cache = await getDebugCache('https://mp.weixin.qq.com/s/0IEaqpJIBGykHFKqj-7xqw');
+  console.log(cache);
   if (cache) {
-    const rawHtml = await readBlob(cache.file);
-    const html = normalizeHtml(rawHtml);
+    const html = await cache.file.text();
     console.log(html);
+    const result = validateHTMLContent(html);
+    console.log(result);
   }
 }
 </script>

@@ -94,14 +94,15 @@ export async function getArticleByLink(url: string): Promise<AppMsgExWithFakeID>
 /**
  * 文章被删除
  * @param url
+ * @param is_deleted
  */
-export async function articleDeleted(url: string): Promise<void> {
+export async function articleDeleted(url: string, is_deleted = true): Promise<void> {
   db.transaction('rw', 'article', async () => {
     db.article
       .where('link')
       .equals(url)
       .modify(article => {
-        article.is_deleted = true;
+        article.is_deleted = is_deleted;
       });
   });
 }

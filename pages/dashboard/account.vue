@@ -289,14 +289,14 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     colId: 'completed',
-    headerName: '已同步完成',
+    headerName: '是否同步完成',
     field: 'completed',
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
     filterParams: createBooleanColumnFilterParams('已同步完成', '未同步完成'),
     cellClass: 'flex justify-center items-center',
     headerClass: 'justify-center',
-    minWidth: 150,
+    minWidth: 200,
   },
   {
     colId: 'action',

@@ -8,7 +8,7 @@ export interface DownloadArticleOptions {
   // 文章内容下载成功回调
   onContent: (url: string) => void;
 
-  // 文章状态异常回调
+  // 文章状态异常回调(不含「已删除」)
   onStatusChange: (url: string, status: string) => void;
 
   // 文章被删除回调
@@ -55,7 +55,11 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
           options.onDelete(url);
         }
       });
-      downloader.on('download:checking', (url: string) => {});
+      downloader.on('download:exception', (url: string, msg: string) => {
+        if (typeof options.onStatusChange === 'function') {
+          options.onStatusChange(url, msg);
+        }
+      });
       downloader.on('download:begin', () => {
         console.debug('开始抓取【文章内容】...');
         completed_count.value = 0;
@@ -108,7 +112,11 @@ export default (options: Partial<DownloadArticleOptions> = {}) => {
           options.onDelete(url);
         }
       });
-      downloader.on('download:checking', (url: string) => {});
+      downloader.on('download:exception', (url: string, msg: string) => {
+        if (typeof options.onStatusChange === 'function') {
+          options.onStatusChange(url, msg);
+        }
+      });
       downloader.on('download:begin', () => {
         console.debug('开始抓取【阅读量】...');
         completed_count.value = 0;
