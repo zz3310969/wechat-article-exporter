@@ -1,4 +1,4 @@
-import { parseCgiDataNewServer } from '#shared/utils/html';
+import { parseCgiDataNewServer } from '~/server/utils/html';
 
 interface DebugQuery {
   key: string;

@@ -1,6 +1,6 @@
-import { normalizeHtml, parseCgiDataNewServer } from '#shared/utils/html';
 import path from 'node:path';
 import fs from 'node:fs';
+import { parseCgiDataNewServer } from '~/server/utils/html';
 
 const samplesDirectory = path.join(__dirname, '../samples');
 
