@@ -9,20 +9,3 @@ export function urlIsValidMpArticle(url: string) {
     return false;
   }
 }
-
-/**
- * 读取 File 内容
- * @param blob
- */
-export async function readBlob(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      resolve(reader.result as string);
-    };
-    reader.onerror = evt => {
-      reject(evt);
-    };
-    reader.readAsText(blob);
-  });
-}

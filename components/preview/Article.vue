@@ -16,6 +16,9 @@ import { getMetadataCache } from '~/store/v2/metadata';
 import type { Preferences } from '~/types/preferences';
 import type { AppMsgEx } from '~/types/types';
 import { renderComments } from '~/utils/comment';
+import toastFactory from '~/composables/toast';
+
+const toast = toastFactory();
 
 const isOpen = ref(false);
 const articleHtml = ref('');
@@ -25,9 +28,9 @@ async function open(article: AppMsgEx) {
   if (htmlAsset) {
     isOpen.value = true;
     const rawHtml = await htmlAsset.file.text();
-    articleHtml.value = await normalizeHtml(htmlAsset, rawHtml);
+    articleHtml.value = await normalizeHtmlForPreview(htmlAsset, rawHtml);
   } else {
-    console.warn('文章未缓存');
+    toast.warning('文章预览失败', `文章【${article.title}】未缓存`);
   }
 }
 
@@ -38,7 +41,7 @@ defineExpose({
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
 
 // 调整最终的 html
-async function normalizeHtml(cachedHtml: HtmlAsset, html: string): Promise<string> {
+async function normalizeHtmlForPreview(cachedHtml: HtmlAsset, html: string): Promise<string> {
   const parser = new DOMParser();
   const document = parser.parseFromString(html, 'text/html');
   const $jsArticleContent = document.querySelector('#js_article')!;

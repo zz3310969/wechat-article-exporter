@@ -5,7 +5,7 @@ import { extractCommentId } from '~/utils/comment';
  * 处理文章的 html 内容
  * @description 采用 cheerio 库解析并修改 html 内容
  * @param rawHTML 公众号文章的原始 html
- * @param format 要处理的格式
+ * @param format 要处理的格式(默认html)
  * @remarks 服务端工具函数
  */
 export function normalizeHtml(rawHTML: string, format: 'html' | 'text' = 'html'): string {
