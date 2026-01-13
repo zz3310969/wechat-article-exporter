@@ -72,3 +72,8 @@ export const ITEM_SHOW_TYPE: Record<number, string> = {
   11: '文章分享',
   17: '短文',
 };
+
+/**
+ * 外部接口服务
+ */
+export const EXTERNAL_API_SERVICE = 'https://my-cron-service.deno.dev';

@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import { extractCommentId } from '~/utils/comment';
+import { EXTERNAL_API_SERVICE } from '~/config';
 
 /**
  * 处理文章的 html 内容
@@ -181,10 +182,11 @@ export function parseCgiDataNewOnClient(html: string): Promise<any> {
 
 /**
  * 从 html 中提取 cgiDataNew 对象
+ * @deprecated Cloudflare 平台禁止任何动态执行脚本，故本方法在 CF 平台无效
  * @param html 文章的完整 html 内容
  * @return window.cgiDataNew 对象，解析失败时返回 null
  */
-export function parseCgiDataNewOnServer(html: string): Promise<any> {
+export function parseCgiDataNewOnServerDeprecated(html: string): Promise<any> {
   const code = extractCgiScript(html);
   if (!code) {
     return Promise.resolve(null);
@@ -203,4 +205,30 @@ export function parseCgiDataNewOnServer(html: string): Promise<any> {
   func(sandbox.window);
 
   return sandbox.cgiDataNew || sandbox.window?.cgiDataNew;
+}
+
+/**
+ * 从 html 中提取 cgiDataNew 对象
+ * @param html 文章的完整 html 内容
+ * @return window.cgiDataNew 对象，解析失败时返回 null
+ */
+export async function parseCgiDataNewOnServer(html: string): Promise<any> {
+  const code = extractCgiScript(html);
+  if (!code) {
+    return Promise.resolve(null);
+  }
+
+  try {
+    const data = await fetch(`${EXTERNAL_API_SERVICE}/api/parse-code`, {
+      method: 'POST',
+      body: code,
+    }).then(res => res.json());
+    if (data && data.executionError === null) {
+      return data.window.cgiDataNew;
+    }
+    return null;
+  } catch (error) {
+    console.error(error);
+  }
+  return null;
 }
