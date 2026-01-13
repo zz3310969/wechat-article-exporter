@@ -126,10 +126,42 @@ export function validateHTMLContent(html: string): ['Success' | 'Deleted' | 'Exc
 // 识别文章的类型
 function detectArticleType(html: string) {}
 
-function parseCgiDataNewClient(html: string): Promise<any> {
+/**
+ * 提取 window.cgiDataNew 所在脚本的代码
+ * @param html 文章的完整 html 内容
+ * @return 脚本代码 (纯代码，不含 <script> 标签)
+ * @remarks 内部使用 cheerio 库进行解析，可运行在浏览器端和服务器端。
+ */
+function extractCgiScript(html: string) {
+  const $ = cheerio.load(html);
+
+  const scriptEl = $('script[type="text/javascript"][h5only]').filter((i, el) => {
+    const content = $(el).html() || '';
+    return content.includes('window.cgiDataNew = ');
+  });
+
+  if (scriptEl.length !== 1) {
+    console.warn('未找到包含 cgiDataNew 的目标 script');
+    return null;
+  }
+
+  return scriptEl.html()?.trim() || null;
+}
+
+/**
+ * 从 html 中提取 cgiDataNew 对象
+ * @param html 文章的完整 html 内容
+ * @return window.cgiDataNew 对象，解析失败时返回 null
+ */
+export function parseCgiDataNewOnClient(html: string): Promise<any> {
+  const code = extractCgiScript(html);
+  if (!code) {
+    return Promise.resolve(null);
+  }
+
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
-  iframe.srcdoc = html;
+  iframe.srcdoc = `<script type="text/javascript">${code}</script>`;
   document.body.appendChild(iframe);
 
   return new Promise((resolve, reject) => {
@@ -145,4 +177,30 @@ function parseCgiDataNewClient(html: string): Promise<any> {
       reject(e);
     };
   });
+}
+
+/**
+ * 从 html 中提取 cgiDataNew 对象
+ * @param html 文章的完整 html 内容
+ * @return window.cgiDataNew 对象，解析失败时返回 null
+ */
+export function parseCgiDataNewOnServer(html: string): Promise<any> {
+  const code = extractCgiScript(html);
+  if (!code) {
+    return Promise.resolve(null);
+  }
+
+  // 1. 创建沙箱
+  const sandbox: any = {
+    window: {},
+    console: { log: () => {}, error: () => {} }, // 可选：屏蔽 console
+    // 如果脚本依赖其他全局，可在这里 mock（如 Date, Math 等已存在）
+  };
+  sandbox.window = sandbox; // 关键：让 window.xxx 落入沙箱
+
+  // 2. 执行代码（new Function 比 eval 稍安全）
+  const func = new Function('window', code);
+  func(sandbox.window);
+
+  return sandbox.cgiDataNew || sandbox.window?.cgiDataNew;
 }

@@ -1,4 +1,4 @@
-import { parseCgiDataNewServer } from '~/server/utils/html';
+import { parseCgiDataNewOnServer } from '#shared/utils/html';
 
 interface DebugQuery {
   key: string;
@@ -14,7 +14,7 @@ export default defineEventHandler(async event => {
         referer: 'https://down.mptext.top',
       },
     }).then(resp => resp.text());
-    return parseCgiDataNewServer(html);
+    return parseCgiDataNewOnServer(html);
   } else {
     return 'not set debug key';
   }

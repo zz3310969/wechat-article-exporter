@@ -12,7 +12,7 @@ import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
 import { BaseDownloader } from '~/utils/download/BaseDownloader';
 import type { DownloadOptions } from './types';
-import { validateHTMLContent } from '#shared/utils/html';
+import { parseCgiDataNewOnClient, validateHTMLContent } from '#shared/utils/html';
 
 type DownloadType = 'html' | 'metadata' | 'comments';
 
@@ -494,26 +494,13 @@ export class Downloader extends BaseDownloader {
   // 提取 HTML 中的元数据(阅读、点赞、分享、喜欢、留言)，并写入缓存
   private async processHtmlMetadata(blob: Blob, url: string): Promise<void> {
     const html = await blob.text();
-    const parser = new DOMParser();
-    const document = parser.parseFromString(html, 'text/html');
-
-    // 定位JS
-    const scripts = document.getElementsByTagName('script');
-    let targetScript = '';
-    for (const script of scripts) {
-      if (script.innerHTML.includes('window.cgiDataNew =')) {
-        targetScript = script.outerHTML;
-        break;
-      }
-    }
-
-    if (!targetScript) {
-      console.error('未找到目标 script');
-      return;
-    }
 
     // 提取对象字符串
-    const cgiData = await parseCgiDataNew(targetScript);
+    const cgiData = await parseCgiDataNewOnClient(html);
+    if (!cgiData) {
+      console.error('提取 window.cgiData 对象失败');
+      return;
+    }
 
     let readNum = 0;
     let oldLikeNum = 0;
@@ -549,25 +536,4 @@ export class Downloader extends BaseDownloader {
     this.emit('download:metadata', url, metadata);
     await updateMetadataCache(metadata);
   }
-}
-
-function parseCgiDataNew(html: string): Promise<any> {
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.srcdoc = html;
-  document.body.appendChild(iframe);
-
-  return new Promise((resolve, reject) => {
-    iframe.onload = function () {
-      // @ts-ignore
-      const data = iframe.contentWindow.cgiDataNew;
-
-      // 用完后清理
-      document.body.removeChild(iframe);
-      resolve(data);
-    };
-    iframe.onerror = function (e) {
-      reject(e);
-    };
-  });
 }

@@ -1,54 +1,5 @@
-import path from 'node:path';
-import fs from 'node:fs';
 import { normalizeHtml } from '#shared/utils/html';
-
-const samplesDirectory = path.join(__dirname, '../samples');
-
-const samples = [
-  {
-    group: '图片分享',
-    samples: [
-      path.join(samplesDirectory, '图片分享/01.html'),
-      path.join(samplesDirectory, '图片分享/02.html'),
-      path.join(samplesDirectory, '图片分享/03.html'),
-      path.join(samplesDirectory, '图片分享/04.html'),
-      path.join(samplesDirectory, '图片分享/05.html'),
-    ],
-  },
-  {
-    group: '文本分享',
-    samples: [
-      path.join(samplesDirectory, '文本分享/01.html'),
-      path.join(samplesDirectory, '文本分享/02.html'),
-      path.join(samplesDirectory, '文本分享/03.html'),
-      path.join(samplesDirectory, '文本分享/04.html'),
-      path.join(samplesDirectory, '文本分享/c01.html'),
-      path.join(samplesDirectory, '文本分享/c02.html'),
-      path.join(samplesDirectory, '文本分享/c03.html'),
-      path.join(samplesDirectory, '文本分享/c04.html'),
-      path.join(samplesDirectory, '文本分享/c05.html'),
-    ],
-  },
-  {
-    group: '文章分享',
-    samples: [
-      path.join(samplesDirectory, '文章分享/01.html'),
-      path.join(samplesDirectory, '文章分享/02.html'),
-      path.join(samplesDirectory, '文章分享/03.html'),
-      path.join(samplesDirectory, '文章分享/04.html'),
-    ],
-  },
-  {
-    group: '普通图文',
-    samples: [
-      path.join(samplesDirectory, '普通图文/01.html'),
-      path.join(samplesDirectory, '普通图文/02.html'),
-      path.join(samplesDirectory, '普通图文/03.html'),
-      path.join(samplesDirectory, '普通图文/04.html'),
-      path.join(samplesDirectory, '普通图文/c01.html'),
-    ],
-  },
-];
+import { samples, read, write } from './common';
 
 function normalizeOutPath(input: string): string {
   const segments = input.split('/');
@@ -57,12 +8,12 @@ function normalizeOutPath(input: string): string {
 }
 
 function run() {
-  for (const example of samples) {
-    console.group(example.group);
-    for (const samplePath of example.samples) {
-      const rawHTMLContent = fs.readFileSync(samplePath, 'utf8');
-      const result = normalizeHtml(rawHTMLContent);
-      fs.writeFileSync(normalizeOutPath(samplePath), result, 'utf8');
+  for (const group of samples.filter(group => group.hasContent)) {
+    console.group(group.name);
+    for (const samplePath of group.samples) {
+      const html = read(samplePath);
+      const result = normalizeHtml(html);
+      write(normalizeOutPath(samplePath), result);
       console.log(samplePath, '已处理');
     }
     console.groupEnd();
