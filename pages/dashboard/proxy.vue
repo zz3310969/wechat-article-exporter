@@ -6,10 +6,16 @@
 
     <div class="flex flex-col h-full divide-y divide-gray-200">
       <!-- header -->
-      <header class="flex justify-between items-center px-4 py-5 sm:px-6">
-        <h2 class="text-2xl font-semibold">统计信息</h2>
+      <header class="px-4 py-5 sm:px-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-semibold">统计信息</h2>
 
-        <p class="font-serif font-bold">可用: {{ totalSuccess }}，不可用: {{ totalFailure }}</p>
+          <p class="font-serif font-bold">可用: {{ totalSuccess }}，不可用: {{ totalFailure }}</p>
+        </div>
+        <p class="text-rose-500 text-sm">
+          警告: 公共代理资源有限，请合理使用。<br />
+          如果需要抓取大量数据，请搭建自己的私有代理节点，若发现某ip存在大量使用公共代理的情况，将会封禁该ip。
+        </p>
       </header>
 
       <!-- 数据展示区 -->
