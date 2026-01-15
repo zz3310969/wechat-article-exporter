@@ -219,7 +219,7 @@ export async function parseCgiDataNewOnServer(html: string): Promise<any> {
   }
 
   try {
-    const data = await fetch(`${EXTERNAL_API_SERVICE}/api/parse-code`, {
+    const data = await fetch(`${EXTERNAL_API_SERVICE}/api/tools/eval-js-code`, {
       method: 'POST',
       body: code,
     }).then(res => res.json());
