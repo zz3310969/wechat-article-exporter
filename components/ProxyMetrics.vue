@@ -145,7 +145,7 @@ function copyAddress(account: AccountMetricWithExtra) {
 
 async function nodeAnalytics(account: AccountMetricWithExtra) {
   account.fetchAnalyticsLoading = true;
-  const resp = await request('/api/web/worker/ip', {
+  const resp = await request('/api/web/worker/security-top-n', {
     method: 'GET',
     query: {
       name: account.name,

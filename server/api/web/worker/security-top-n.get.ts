@@ -9,5 +9,7 @@ interface NameQuery {
 
 export default defineEventHandler(async event => {
   const { name } = getQuery<NameQuery>(event);
-  return await fetch(`${EXTERNAL_API_SERVICE}/api/worker-security?name=${name}`).then(res => res.json());
+  return await fetch(`${EXTERNAL_API_SERVICE}/api/cf-worker/worker-security-top-n?name=${name}`).then(res =>
+    res.json()
+  );
 });

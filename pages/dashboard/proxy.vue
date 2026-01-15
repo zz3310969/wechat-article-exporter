@@ -85,7 +85,7 @@ const totalFailure = computed(
 async function getMetricsData() {
   loading.value = true;
   try {
-    metricsData.value = await fetch('/api/web/misc/status').then(res => res.json());
+    metricsData.value = await fetch('/api/web/worker/overview-metrics').then(res => res.json());
   } catch (error) {
     console.error(error);
   } finally {
@@ -97,7 +97,7 @@ const currentIP = ref('');
 onMounted(async () => {
   await getMetricsData();
 
-  const data = await request('/api/web/misc/ip');
+  const data = await request('/api/web/misc/current-ip');
   currentIP.value = data.ip;
 });
 const hasBlocked = computed(() => {
