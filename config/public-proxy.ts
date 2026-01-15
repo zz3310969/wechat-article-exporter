@@ -18,10 +18,3 @@ function getDomainProxyList(domain: string): string[] {
   }
   return list;
 }
-
-export const BLOCKED_IPS = [
-  '23.184.88.251',
-  '2409:8a55:6e1:a550:4a5f:8ff:feb6:3716',
-  '120.230.80.75',
-  '2001:da8:20c:a133::3:335a',
-];
