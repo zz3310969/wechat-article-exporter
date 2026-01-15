@@ -33,12 +33,12 @@
                   </code>
                 </div>
                 <div>
-                  <p class="flex justify-between items-center">
+                  <p class="flex justify-between items-center min-w-64">
                     <span>已被封禁IP:</span>
                     <span class="text-xs text-gray-500">若存在误伤，请联系开发者</span>
                   </p>
                   <ul>
-                    <li v-for="ip in BLOCKED_IPS" :key="ip">
+                    <li v-for="ip in blockedIPS" :key="ip">
                       <code class="text-rose-500">{{ ip }}</code>
                     </li>
                   </ul>
@@ -66,7 +66,6 @@ import { websiteName } from '~/config';
 import type { AccountMetric } from '~/types/proxy';
 import ProxyMetrics from '~/components/ProxyMetrics.vue';
 import { request } from '#shared/utils/request';
-import { BLOCKED_IPS } from '~/config/public-proxy';
 
 useHead({
   title: `公共代理 | ${websiteName}`,
@@ -85,7 +84,11 @@ const totalFailure = computed(
 async function getMetricsData() {
   loading.value = true;
   try {
-    metricsData.value = await fetch('/api/web/worker/overview-metrics').then(res => res.json());
+    metricsData.value = await fetch('/api/web/worker/overview-metrics')
+      .then(res => res.json())
+      .catch(e => {
+        throw e;
+      });
   } catch (error) {
     console.error(error);
   } finally {
@@ -94,13 +97,20 @@ async function getMetricsData() {
 }
 
 const currentIP = ref('');
-onMounted(async () => {
-  await getMetricsData();
+const blockedIPS = ref<string[]>([]);
 
-  const data = await request('/api/web/misc/current-ip');
-  currentIP.value = data.ip;
+onMounted(async () => {
+  await Promise.all([
+    getMetricsData(),
+    request('/api/web/misc/current-ip').then(data => {
+      currentIP.value = data.ip;
+    }),
+    request<string[]>('/api/web/worker/blocked-ip-list').then(data => {
+      blockedIPS.value = data;
+    }),
+  ]);
 });
 const hasBlocked = computed(() => {
-  return BLOCKED_IPS.includes(currentIP.value);
+  return blockedIPS.value.includes(currentIP.value);
 });
 </script>
