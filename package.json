@@ -1,6 +1,6 @@
 {
   "name": "wechat-article-exporter",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "type": "module",
   "scripts": {
     "debug": "nuxt dev --inspect",
@@ -34,6 +34,7 @@
     "dompurify": "^3.2.5",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "happy-dom": "^20.1.0",
     "highlight.js": "^11.11.1",
     "jszip": "^3.10.1",
     "lucide-vue-next": "^0.441.0",

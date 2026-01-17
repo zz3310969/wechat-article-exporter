@@ -14,37 +14,32 @@ import type {
 import { AgGridVue } from 'ag-grid-vue3';
 import { defu } from 'defu';
 import type { PreviewArticle } from '#components';
-import { readBlob } from '#shared/utils';
 import { durationToSeconds, formatItemShowType, formatTimeStamp, sleep } from '#shared/utils/helpers';
-import { normalizeHtml } from '#shared/utils/html';
-import GridActions from '~/components/grid/Actions.vue';
+import { validateHTMLContent } from '#shared/utils/html';
+import GridArticleActions from '~/components/grid/ArticleActions.vue';
 import GridAlbum from '~/components/grid/Album.vue';
 import GridCoverTooltip from '~/components/grid/CoverTooltip.vue';
 import GridStatusBar from '~/components/grid/StatusBar.vue';
 import AccountSelectorForArticle from '~/components/selector/AccountSelectorForArticle.vue';
 import { isDev, websiteName } from '~/config';
 import { sharedGridOptions } from '~/config/shared-grid-options';
-import { articleDeleted, getArticleCache } from '~/store/v2/article';
+import { articleDeleted, getArticleCache, updateArticleStatus } from '~/store/v2/article';
 import { getCommentCache } from '~/store/v2/comment';
 import { getHtmlCache } from '~/store/v2/html';
-import { type Info } from '~/store/v2/info';
+import { type MpAccount } from '~/store/v2/info';
 import { getMetadataCache, type Metadata } from '~/store/v2/metadata';
 import type { Preferences } from '~/types/preferences';
-import type { AppMsgEx } from '~/types/types';
+import type { AppMsgExWithFakeID } from '~/types/types';
 import type { ArticleMetadata } from '~/utils/download/types';
 import { createBooleanColumnFilterParams, createDateColumnFilterParams } from '~/utils/grid';
+import { getDebugCache } from '~/store/v2/debug';
 
 useHead({
   title: `文章下载 | ${websiteName}`,
 });
 
 // 当前页面的数据模型
-interface Article extends AppMsgEx, Partial<ArticleMetadata> {
-  /**
-   * 公众号id
-   */
-  fakeid: string;
-
+interface Article extends AppMsgExWithFakeID, Partial<ArticleMetadata> {
   /**
    * 文章内容是否已下载
    */
@@ -139,6 +134,18 @@ const columnDefs = ref<ColDef[]>([
     cellDataType: 'boolean',
     filter: 'agSetColumnFilter',
     filterParams: createBooleanColumnFilterParams('已删除', '未删除'),
+    minWidth: 150,
+    initialHide: true,
+    cellClass: 'flex justify-center items-center',
+  },
+  {
+    headerName: '文章状态',
+    field: '_status',
+    valueFormatter: p => p.value,
+    filter: 'agSetColumnFilter',
+    filterParams: {
+      valueFormatter: (p: ValueFormatterParams) => p.value,
+    },
     minWidth: 150,
     initialHide: true,
     cellClass: 'flex justify-center items-center',
@@ -256,7 +263,7 @@ const columnDefs = ref<ColDef[]>([
     field: 'link',
     sortable: false,
     filter: false,
-    cellRenderer: GridActions,
+    cellRenderer: GridArticleActions,
     cellRendererParams: {
       onPreview: (params: ICellRendererParams) => {
         preview(params.data);
@@ -331,7 +338,7 @@ function preview(article: Article) {
 const loading = ref(false);
 
 // 只能选择单个账号
-const selectedAccount = ref<Info | undefined>();
+const selectedAccount = ref<MpAccount | undefined>();
 
 watch(selectedAccount, newVal => {
   switchTableData(newVal!.fakeid).catch(() => {});
@@ -392,25 +399,36 @@ const {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.contentDownload = true;
+      article._status = '正常';
       updateRow(article);
+
+      updateArticleStatus(url, '正常');
+
+      // 修复之前代码逻辑错误导致的数据库状态被误设置为【已删除】
+      article.is_deleted = false;
+      articleDeleted(url, false);
     } else {
       console.warn(`${url} not found in table data when update contentDownload`);
+    }
+  },
+  onStatusChange(url: string, status: string) {
+    const article = globalRowData.find(article => article.link === url);
+    if (article) {
+      article._status = status;
+      updateRow(article);
+
+      updateArticleStatus(url, status);
     }
   },
   onDelete(url: string) {
     const article = globalRowData.find(article => article.link === url);
     if (article) {
       article.is_deleted = true;
-      articleDeleted(url);
+      article._status = '已删除';
       updateRow(article);
-    }
-  },
-  onChecking(url: string) {
-    const article = globalRowData.find(article => article.link === url);
-    if (article) {
-      article.is_deleted = true;
+
+      updateArticleStatus(url, '已删除');
       articleDeleted(url);
-      updateRow(article);
     }
   },
   onMetadata(url: string, metadata: Metadata) {
@@ -446,11 +464,13 @@ const {
 } = useExporter();
 
 async function debug() {
-  const cache = await getHtmlCache('https://mp.weixin.qq.com/s/Uzr9f6SRQ_H1qM812vYXdg');
+  const cache = await getDebugCache('https://mp.weixin.qq.com/s/0IEaqpJIBGykHFKqj-7xqw');
+  console.log(cache);
   if (cache) {
-    const rawHtml = await readBlob(cache.file);
-    const html = normalizeHtml(rawHtml);
+    const html = await cache.file.text();
     console.log(html);
+    const result = validateHTMLContent(html);
+    console.log(result);
   }
 }
 </script>

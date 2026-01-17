@@ -128,7 +128,7 @@ import { request } from '#shared/utils/request';
 import AccountSelectorForAlbum from '~/components/selector/AccountSelectorForAlbum.vue';
 import { useDownloadAlbum } from '~/composables/useBatchDownload';
 import { websiteName } from '~/config';
-import { type Info } from '~/store/v2/info';
+import { type MpAccount } from '~/store/v2/info';
 import type { AppMsgAlbumResult, ArticleItem, BaseInfo } from '~/types/album';
 import type { AppMsgAlbumInfo, DownloadableArticle } from '~/types/types';
 import { gotoLink } from '~/utils';
@@ -138,7 +138,7 @@ useHead({
   title: `合集下载 | ${websiteName}`,
 });
 
-interface AccountInfo extends Info {
+interface AccountInfo extends MpAccount {
   albums?: AppMsgAlbumInfo[];
 }
 

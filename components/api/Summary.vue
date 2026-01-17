@@ -70,7 +70,9 @@ async function getAuthKey() {
             </p>
           </li>
         </ol>
-        <UButton class="mt-3" color="blue" :loading="loading" @click="getAuthKey">查询 API 密钥</UButton>
+        <UButton class="mt-3" color="blue" :loading="loading" @click="getAuthKey">
+          查询 API 密钥 (确保当前登录信息有效)
+        </UButton>
         <div v-if="authKey">
           <p class="mt-5 mb-2">当前密钥:</p>
           <CodeSegment :code="authKey" lang="text" class="max-w-xl" />

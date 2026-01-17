@@ -5,7 +5,7 @@
       :key="account.name"
       class="relative w-full max-w-2xl border p-5 rounded-md hover:shadow"
     >
-      <h3 class="text-xl text-gray-600 font-mono mb-3">节点: {{ account.domain }}</h3>
+      <h3 class="text-xl text-gray-600 font-mono mb-3" :title="account.name">节点: {{ account.domain }}</h3>
       <UMeter v-if="account.metric" :value="account.metric.dailyRequests" :max="100_000" color="orange">
         <template #indicator>
           <div class="flex justify-between items-center text-gray-400">
@@ -58,13 +58,26 @@
             </UTooltip>
           </div>
         </header>
+
         <div
           v-for="item in account.topClientIPs"
-          :key="item.ip"
-          class="flex justify-between items-center text-gray-400 hover:bg-gray-100 py-1"
+          :key="item.clientIP"
+          class="relative flex justify-between items-center text-gray-400 hover:bg-gray-100 my-2 px-2 py-1 rounded overflow-hidden"
         >
-          <p class="font-mono text-sm">{{ item.ip }}</p>
-          <p class="font-mono text-sm">{{ item.count > 1000 ? (item.count / 1000).toFixed(2) + 'k' : item.count }}</p>
+          <!-- 灰色背景条（全宽） -->
+          <div class="absolute inset-0 bg-gray-100 rounded"></div>
+
+          <!-- 蓝色进度条（根据 count / total 动态宽度） -->
+          <div
+            :style="{ width: account.total ? (item.count / account.total) * 100 + '%' : '0%' }"
+            class="absolute inset-y-0 left-0 bg-blue-700 rounded-l"
+          ></div>
+
+          <!-- IP 和计数文字（在最上层） -->
+          <p class="relative z-10 font-mono text-sm">{{ item.clientIP }}</p>
+          <p class="relative z-10 font-mono text-sm">
+            {{ item.count > 1000 ? (item.count / 1000).toFixed(2) + 'k' : item.count }}
+          </p>
         </div>
       </div>
     </div>
@@ -82,9 +95,10 @@ interface AccountMetricWithExtra extends AccountMetric {
   copied: boolean;
   fetchAnalyticsLoading: boolean;
   topClientIPs: Security[];
+  total: number;
 }
 interface Security {
-  ip: string;
+  clientIP: string;
   count: number;
 }
 
@@ -96,6 +110,7 @@ const accountMetrics: AccountMetricWithExtra[] = reactive(
     copied: false,
     fetchAnalyticsLoading: false,
     topClientIPs: [],
+    total: 0,
   }))
 );
 
@@ -109,6 +124,7 @@ watch(
         copied: false,
         fetchAnalyticsLoading: false,
         topClientIPs: [],
+        total: 0,
       }))
     );
   }
@@ -129,7 +145,7 @@ function copyAddress(account: AccountMetricWithExtra) {
 
 async function nodeAnalytics(account: AccountMetricWithExtra) {
   account.fetchAnalyticsLoading = true;
-  const resp = await request('/api/web/worker/ip', {
+  const resp = await request('/api/web/worker/security-top-n', {
     method: 'GET',
     query: {
       name: account.name,
@@ -138,5 +154,6 @@ async function nodeAnalytics(account: AccountMetricWithExtra) {
     account.fetchAnalyticsLoading = false;
   });
   account.topClientIPs = resp.topClientIPs;
+  account.total = resp.total;
 }
 </script>

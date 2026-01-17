@@ -1,6 +1,6 @@
 import type { AppMsgExWithFakeID, PublishInfo, PublishPage } from '~/types/types';
 import { db } from './db';
-import { type Info, updateInfoCache } from './info';
+import { type MpAccount, updateInfoCache } from './info';
 
 export type ArticleAsset = AppMsgExWithFakeID;
 
@@ -9,7 +9,7 @@ export type ArticleAsset = AppMsgExWithFakeID;
  * @param account
  * @param publish_page
  */
-export async function updateArticleCache(account: Info, publish_page: PublishPage) {
+export async function updateArticleCache(account: MpAccount, publish_page: PublishPage) {
   db.transaction('rw', ['article', 'info'], async () => {
     const keys = await db.article.toCollection().keys();
 
@@ -26,7 +26,7 @@ export async function updateArticleCache(account: Info, publish_page: PublishPag
       let newEntryCount = 0;
 
       for (const article of publish_info.appmsgex) {
-        const key = await db.article.put({ ...article, fakeid }, `${fakeid}:${article.aid}`);
+        const key = await db.article.put({ ...article, fakeid, _status: '' }, `${fakeid}:${article.aid}`);
         if (!keys.includes(key)) {
           newEntryCount++;
           articleCount++;
@@ -94,14 +94,31 @@ export async function getArticleByLink(url: string): Promise<AppMsgExWithFakeID>
 /**
  * 文章被删除
  * @param url
+ * @param is_deleted
  */
-export async function articleDeleted(url: string): Promise<void> {
+export async function articleDeleted(url: string, is_deleted = true): Promise<void> {
   db.transaction('rw', 'article', async () => {
     db.article
       .where('link')
       .equals(url)
       .modify(article => {
-        article.is_deleted = true;
+        article.is_deleted = is_deleted;
+      });
+  });
+}
+
+/**
+ * 更新文章状态
+ * @param url
+ * @param status
+ */
+export async function updateArticleStatus(url: string, status: string): Promise<void> {
+  db.transaction('rw', 'article', async () => {
+    db.article
+      .where('link')
+      .equals(url)
+      .modify(article => {
+        article._status = status;
       });
   });
 }

@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { getAllInfo, type Info } from '~/store/v2/info';
+import { getAllInfo, type MpAccount } from '~/store/v2/info';
 
 // 已缓存的公众号信息
 const cachedAccountInfos = await getAllInfo();
@@ -37,5 +37,5 @@ const sortedAccountInfos = computed(() => {
   return cachedAccountInfos;
 });
 
-const selected = defineModel<Info | undefined>();
+const selected = defineModel<MpAccount | undefined>();
 </script>

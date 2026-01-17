@@ -10,15 +10,16 @@ import { updateMetadataCache } from '~/store/v2/metadata';
 import type { CommentResponse, ReplyResponse } from '~/types/comment';
 import type { ParsedCredential } from '~/types/credential';
 import type { Preferences } from '~/types/preferences';
-import { BaseDownload } from '~/utils/download/BaseDownload';
+import { BaseDownloader } from '~/utils/download/BaseDownloader';
 import type { DownloadOptions } from './types';
+import { parseCgiDataNewOnClient, validateHTMLContent } from '#shared/utils/html';
 
 type DownloadType = 'html' | 'metadata' | 'comments';
 
 const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials:credentials', []);
 const preferences: Ref<Preferences> = usePreferences() as unknown as Ref<Preferences>;
 
-export class Downloader extends BaseDownload {
+export class Downloader extends BaseDownloader {
   // 下载的类型
   private downloadType: DownloadType = 'html';
 
@@ -30,12 +31,12 @@ export class Downloader extends BaseDownload {
 
   // 启动抓取任务
   public async startDownload(type: DownloadType) {
-    if (this.isProcessing) {
+    if (this.isRunning) {
       throw new Error('下载任务正在运行中，无需重复启动');
     }
     this.downloadType = type;
 
-    this.isProcessing = true;
+    this.isRunning = true;
     const start = Date.now();
     this.emit('download:begin');
     if (['metadata', 'comments'].includes(this.downloadType) && this.options.concurrency > 5) {
@@ -46,7 +47,7 @@ export class Downloader extends BaseDownload {
     try {
       await this.processDownloadQueue();
     } finally {
-      this.isProcessing = false;
+      this.isRunning = false;
       const elapse = Math.round((Date.now() - start) / 1000);
       this.emit('download:finish', elapse, this.getStatus());
       this.cancelAllPending();
@@ -134,7 +135,7 @@ export class Downloader extends BaseDownload {
       try {
         const blob = await this.download(article.fakeid, url, proxy, false);
         const html = await blob.text();
-        const [status, commentID] = this.validateHTMLContent(html);
+        const [status, commentID] = validateHTMLContent(html);
         if (status === 'Success') {
           // 下载成功
           await updateHtmlCache({
@@ -151,41 +152,40 @@ export class Downloader extends BaseDownload {
         } else if (status === 'Deleted') {
           // 文章被删除
           console.warn(`文章(url: ${url} )已被删除`);
-          await updateDebugCache({
-            fakeid: article.fakeid,
-            type: 'deleted',
-            url: url,
-            title: article.title,
-            file: blob,
-          });
+
           // 通知外边更新删除状态
           this.emit('download:deleted', url);
           this.pending.delete(url);
           this.deleted.add(url);
           this.proxyManager.recordSuccess(proxy);
           return;
-        } else if (status === 'Checking') {
-          // 内容审核中(大概率也跟删除没啥区别)
-          console.warn(`文章(url: ${url} )内容审核中`);
+        } else if (status === 'Exception' && commentID) {
+          // 文章状态异常
+          console.warn(`文章(url: ${url} )状态异常: ${commentID}`);
+
+          // 通知外边更新文章状态
+          this.emit('download:exception', url, commentID);
+          this.pending.delete(url);
+          this.failed.add(url);
+          this.proxyManager.recordSuccess(proxy);
+          return;
+        } else if (status === 'Exception' && !commentID) {
+          // 文章下载失败(风控导致的)
+          console.warn(`文章(url: ${url} )下载失败(风控所致)`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'checking',
+            type: `exception:${commentID}`,
             url: url,
             title: article.title,
             file: blob,
           });
-          // 通知外边更新删除状态
-          this.emit('download:checking', url);
-          this.pending.delete(url);
-          this.deleted.add(url);
-          this.proxyManager.recordSuccess(proxy);
-          return;
-        } else if (status === 'Failure') {
+          throwException(`文章(url: ${url} )下载失败`);
+        } else if (status === 'Error') {
           // 下载失败
           console.warn(`文章(url: ${url} )解析失败`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'failure',
+            type: 'parse error',
             url: url,
             title: article.title,
             file: blob,
@@ -227,7 +227,7 @@ export class Downloader extends BaseDownload {
       try {
         const blob = await this.download(article.fakeid, url, proxy, true);
         const html = await blob.text();
-        const [status, commentID] = this.validateHTMLContent(html);
+        const [status, commentID] = validateHTMLContent(html);
         if (status === 'Success') {
           // 下载成功
           await this.processHtmlMetadata(blob, url);
@@ -246,41 +246,40 @@ export class Downloader extends BaseDownload {
         } else if (status === 'Deleted') {
           // 文章被删除
           console.warn(`获取阅读量时发现文章(url: ${url} )已被删除`);
-          await updateDebugCache({
-            fakeid: article.fakeid,
-            type: 'deleted',
-            url: url,
-            title: article.title,
-            file: blob,
-          });
+
           // 通知外边更新删除状态
           this.emit('download:deleted', url);
           this.pending.delete(url);
           this.deleted.add(url);
           this.proxyManager.recordSuccess(proxy);
           return;
-        } else if (status === 'Checking') {
-          // 内容审核中(大概率也跟删除没啥区别)
-          console.warn(`获取阅读量时发现文章(url: ${url} )内容审核中`);
+        } else if (status === 'Exception' && commentID) {
+          // 文章状态异常
+          console.warn(`获取阅读量时发现文章(url: ${url} )状态异常: ${commentID}`);
+
+          // 通知外边更新文章状态
+          this.emit('download:exception', url, commentID);
+          this.pending.delete(url);
+          this.failed.add(url);
+          this.proxyManager.recordSuccess(proxy);
+          return;
+        } else if (status === 'Exception' && !commentID) {
+          // 文章下载失败(风控导致的)
+          console.warn(`文章(url: ${url} )下载失败(风控所致)`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'checking',
+            type: `exception:${commentID}`,
             url: url,
             title: article.title,
             file: blob,
           });
-          // 通知外边更新删除状态
-          this.emit('download:checking', url);
-          this.pending.delete(url);
-          this.deleted.add(url);
-          this.proxyManager.recordSuccess(proxy);
-          return;
-        } else if (status === 'Failure') {
+          throwException(`文章(url: ${url} )下载失败`);
+        } else if (status === 'Error') {
           // 下载文章失败，需要重试
           console.warn(`获取阅读量时发现文章(url: ${url} )解析失败`);
           await updateDebugCache({
             fakeid: article.fakeid,
-            type: 'failure',
+            type: 'parse error',
             url: url,
             title: article.title,
             file: blob,
@@ -495,26 +494,13 @@ export class Downloader extends BaseDownload {
   // 提取 HTML 中的元数据(阅读、点赞、分享、喜欢、留言)，并写入缓存
   private async processHtmlMetadata(blob: Blob, url: string): Promise<void> {
     const html = await blob.text();
-    const parser = new DOMParser();
-    const document = parser.parseFromString(html, 'text/html');
-
-    // 定位JS
-    const scripts = document.getElementsByTagName('script');
-    let targetScript = '';
-    for (const script of scripts) {
-      if (script.innerHTML.includes('window.cgiDataNew =')) {
-        targetScript = script.outerHTML;
-        break;
-      }
-    }
-
-    if (!targetScript) {
-      console.error('未找到目标 script');
-      return;
-    }
 
     // 提取对象字符串
-    const cgiData = await parseCgiDataNew(targetScript);
+    const cgiData = await parseCgiDataNewOnClient(html);
+    if (!cgiData) {
+      console.error('提取 window.cgiData 对象失败');
+      return;
+    }
 
     let readNum = 0;
     let oldLikeNum = 0;
@@ -550,25 +536,4 @@ export class Downloader extends BaseDownload {
     this.emit('download:metadata', url, metadata);
     await updateMetadataCache(metadata);
   }
-}
-
-function parseCgiDataNew(html: string): Promise<any> {
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.srcdoc = html;
-  document.body.appendChild(iframe);
-
-  return new Promise((resolve, reject) => {
-    iframe.onload = function () {
-      // @ts-ignore
-      const data = iframe.contentWindow.cgiDataNew;
-
-      // 用完后清理
-      document.body.removeChild(iframe);
-      resolve(data);
-    };
-    iframe.onerror = function (e) {
-      reject(e);
-    };
-  });
 }

@@ -1,7 +1,7 @@
 import { request } from '#shared/utils/request';
 import { ACCOUNT_LIST_PAGE_SIZE, ARTICLE_LIST_PAGE_SIZE } from '~/config';
 import { updateArticleCache } from '~/store/v2/article';
-import { type Info, updateLastUpdateTime } from '~/store/v2/info';
+import { type MpAccount, updateLastUpdateTime } from '~/store/v2/info';
 import type { CommentResponse } from '~/types/comment';
 import type {
   AccountInfo,
@@ -24,7 +24,11 @@ const credentials = useLocalStorage<ParsedCredential[]>('auto-detect-credentials
  * @param keyword
  * @return [文章列表, 是否加载完毕, 文章总数]
  */
-export async function getArticleList(account: Info, begin = 0, keyword = ''): Promise<[AppMsgEx[], boolean, number]> {
+export async function getArticleList(
+  account: MpAccount,
+  begin = 0,
+  keyword = ''
+): Promise<[AppMsgEx[], boolean, number]> {
   const resp = await request<AppMsgPublishResponse>('/api/web/mp/appmsgpublish', {
     query: {
       id: account.fakeid,
