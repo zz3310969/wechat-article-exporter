@@ -18,6 +18,7 @@ export async function proxyMpRequest(options: RequestOptions) {
     Referer: 'https://mp.weixin.qq.com/',
     Origin: 'https://mp.weixin.qq.com',
     'User-Agent': USER_AGENT,
+    'Accept-Encoding': 'identity', // 禁用压缩，避免出现response.clone() bug
   });
 
   // 优先读取参数中的 cookie，若无则从 CookieStore 中读取

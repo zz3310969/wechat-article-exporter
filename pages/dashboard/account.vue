@@ -333,7 +333,7 @@ const columnDefs = ref<ColDef[]>([
       syncingRowId: syncingRowId,
     },
     cellClass: 'flex justify-center items-center',
-    maxWidth: 100,
+    maxWidth: 130,
     pinned: 'right',
   },
 ]);
